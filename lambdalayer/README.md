@@ -45,8 +45,8 @@ Mappings:
     DynatraceSecretArn: 
       Value: !If
         - IsProd
-        - arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
         - arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
+        - arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
 
 Globals:
   Function:
