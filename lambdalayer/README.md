@@ -72,6 +72,8 @@ Globals:
     Runtime: java17
     Architectures:
       - x86_64
+    # An additional 1.5GB is recommended for Java
+    # For Node and Python an additional 500 MB 
     MemorySize: 2048
     CodeSigningConfigArn: !If
       - UseCodeSigning
