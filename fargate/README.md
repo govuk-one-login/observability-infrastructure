@@ -8,9 +8,9 @@ It is recommended to modify your Cloudformation template first, so that the envi
 
 Ensure that the task has sufficient IAM permissions to retrieve the secret and decrypt the KMS key. At the time of writing, the resources are:
 
-- arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-- arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
-- arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe
+- `arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables`
+- `arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables`
+- `arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe`
 
 Roughly the changes needed to be made to your template are below. This won't cover all circumstances, and we are more than happy to help in those cases.
 
