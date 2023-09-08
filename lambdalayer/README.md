@@ -73,7 +73,6 @@ Globals:
     Architectures:
       - x86_64
     # An additional 1.5GB is recommended for Java
-    # For Node and Python an additional 500 MB 
     MemorySize: 2048
     CodeSigningConfigArn: !If
       - UseCodeSigning
@@ -89,11 +88,35 @@ Resources:
 
 ### Notes
 
-When using Java, ensure that you add an addition 1.5GB headroom of RAM for the layer to run with. This is not necessary with NodeJS.
+When using Java, ensure that you add an addition 1.5GB headroom of RAM for the layer to run with. This is not necessary with NodeJS or Python.
 
 ## Updating the layers
 
-The copy-layer.sh script can be used to automatically download the layer from Dynatrace, sign it and create a new layer.
+The copy-layer.sh script can be used to automatically download the layer from Dynatrace, sign it and create a new layer in the `di-observability-production` AWS account.
+
+### Updating the layers - prerequisite
+
+Call the api endpoint to get the lambda layer of interests name, you will need a token with `PaaS integration - Installer download ` for this:
+
+```bash
+curl -sX GET "https://khw46367.live.dynatrace.com/api/v1/deployment/lambda/agent/latest" -H "accept: application/json; charset=utf-8" -H "Authorization: Api-Token <token>"  | jq .
+```
+
+```json
+{
+  "java": "Dynatrace_OneAgent_1_273_138_20230829-095340",
+  "java_with_collector": "Dynatrace_OneAgent_1_273_138_20230829-095340_with_collector",
+  "python": "Dynatrace_OneAgent_1_273_2_20230728-042537",
+  "python_with_collector": "Dynatrace_OneAgent_1_273_2_20230728-042537_with_collector",
+  "nodejs": "Dynatrace_OneAgent_1_273_3_20230810-161024",
+  "nodejs_with_collector": "Dynatrace_OneAgent_1_273_3_20230810-161024_with_collector",
+  "collector": "Dynatrace_OneAgent_1_273_1_20230728-040942"
+}
+```
+
+pick the `<runtime>_with_collector` additionally you need to add `_<runtime>` to the value. 
+
+### Updating the layers -- script
 
 Call it as, while authenticated as an administrator in the `di-observability-production` AWS account:
 
