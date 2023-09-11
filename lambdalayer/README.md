@@ -11,11 +11,11 @@ If you are using Secure Pipeline to deploy your SAM application, you will need t
 
 ### Template
 
-The following is an example of how to integrate the Dynatrace Lambda Layer into your Lambda functions.
+The following is an example of integrating the Dynatrace Lambda Layer into your Lambda functions.
 
 This does assume you are using the same runtime for all Lambda functions, if this is not the case, specify the layer per function.
 
-If you are not using Cloudformation, or the following does not satisfy your team's requirements, reach out and we can try to help!
+If you are not using Cloudformation or the following does not satisfy your team's requirements, reach out, and we can try to help!
 
 ```yaml
 AWSTemplateFormatVersion: 2010-09-09
@@ -88,15 +88,15 @@ Resources:
 
 ### Notes
 
-When using Java, ensure that you add an addition 1.5GB headroom of RAM for the layer to run with. This is not necessary with NodeJS or Python.
+When using Java, please ensure you add 1.5GB headroom of RAM for the layer to run with. This is not necessary with NodeJS or Python.
 
 ## Updating the layers
 
-The copy-layer.sh script can be used to automatically download the layer from Dynatrace, sign it and create a new layer in the `di-observability-production` AWS account.
+The copy-layer.sh script can automatically download the layer from Dynatrace, sign it and create a new layer in the `di-observability-production` AWS account.
 
-### Updating the layers - prerequisite
+### Updating the layers - prerequisites
 
-Call the api endpoint to get the lambda layer of interests name, you will need a token with `PaaS integration - Installer download ` for this:
+Call the API endpoint to get the lambda layer of interests name, You will need a token with `PaaS integration - Installer download ` for this:
 
 ```bash
 curl -sX GET "https://khw46367.live.dynatrace.com/api/v1/deployment/lambda/agent/latest" -H "accept: application/json; charset=utf-8" -H "Authorization: Api-Token <token>"  | jq .
@@ -124,6 +124,6 @@ Call it as, while authenticated as an administrator in the `di-observability-pro
 ./copy-layer.sh Dynatrace_OneAgent_1_271_112_20230731-073314_with_collector_java
 ```
 
-it will take a few seconds to finish, and output the layer version ARN at the end.
+It will take a few seconds to finish and output the layer version ARN.
 
 Update the DynatraceProductionVariables and DynatraceNonProductionVariables secrets in Secret Manager with the new layer ARN.
