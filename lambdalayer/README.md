@@ -2,7 +2,9 @@
 
 ## Integrating into Cloudformation
 
-### Pipeline changes
+### Prerequisites
+
+Ensure you are running the latest VPC stack and SAM Deployment Pipeline stack version. At time of writing, v1.14.3 and v2.36.0, respectively.
 
 If you are using Secure Pipeline to deploy your SAM application, you will need to make the following modifications:
 
