@@ -4,6 +4,10 @@ Below are the instructions for instrumenting a Fargate container with Dynatrace 
 
 It is recommended that you modify your Cloudformation template first so that the environment variables are in place before OneAgent runs; this will make sure traffic is routed to the correct Dynatrace instance.
 
+## Prerequisites
+
+Ensure you are running the latest VPC stack and SAM Deployment Pipeline stack version. At time of writing, v1.14.3 and v2.36.0, respectively.
+
 ## Template
 
 Ensure the task has sufficient IAM permissions to retrieve the secret and decrypt the KMS key. At the time of writing, the resources are:
