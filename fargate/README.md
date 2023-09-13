@@ -6,7 +6,7 @@ It is recommended that you modify your Cloudformation template first so that the
 
 ## Prerequisites
 
-Ensure you are running the latest VPC stack and SAM Deployment Pipeline stack version. At time of writing, v1.14.3 and v2.36.0, respectively.
+Ensure you run the latest VPC stack and SAM Deployment Pipeline stack versions. At time of writing, v1.14.3 and v2.36.0, respectively. You can check the version of stacks in the [CloudFormation Console](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/stacks) in the description column.
 
 ## Template
 
