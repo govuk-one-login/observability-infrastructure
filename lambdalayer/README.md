@@ -11,7 +11,7 @@ If you are using Secure Pipeline to deploy your SAM application, you will need t
 - `AdditionalCodeSigningVersionArns`: add `arn:aws:signer:eu-west-2:216552277552:/signing-profiles/DynatraceSigner/5uwzCCGTPq`
 - `CustomKmsKeyArns`: add `arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe`
 
-Your lambda needs to have access to the internet, so that it can send it's metrics to Dynatrace.
+Your Lambda Function needs to have access to the internet, so that it can send it's metrics to Dynatrace.
 
 ### Template
 
