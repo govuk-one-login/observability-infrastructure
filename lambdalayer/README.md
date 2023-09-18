@@ -96,4 +96,4 @@ When using Java, please ensure you add 1.5GB headroom of RAM for the layer to ru
 
 ## Updating the layers
 
-The update-layers workflow runs on a weekly basis and updates the layers.
+The update-layers workflow runs on a weekly basis and updates the layers, but it can also be executed manually.
