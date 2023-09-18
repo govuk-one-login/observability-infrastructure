@@ -96,38 +96,4 @@ When using Java, please ensure you add 1.5GB headroom of RAM for the layer to ru
 
 ## Updating the layers
 
-The copy-layer.sh script can automatically download the layer from Dynatrace, sign it and create a new layer in the `di-observability-production` AWS account.
-
-### Updating the layers - prerequisites
-
-Call the API endpoint to get the lambda layer of interests name, You will need a token with `PaaS integration - Installer download ` for this:
-
-```bash
-curl -sX GET "https://khw46367.live.dynatrace.com/api/v1/deployment/lambda/agent/latest" -H "accept: application/json; charset=utf-8" -H "Authorization: Api-Token <token>"  | jq .
-```
-
-```json
-{
-  "java": "Dynatrace_OneAgent_1_273_138_20230829-095340",
-  "java_with_collector": "Dynatrace_OneAgent_1_273_138_20230829-095340_with_collector",
-  "python": "Dynatrace_OneAgent_1_273_2_20230728-042537",
-  "python_with_collector": "Dynatrace_OneAgent_1_273_2_20230728-042537_with_collector",
-  "nodejs": "Dynatrace_OneAgent_1_273_3_20230810-161024",
-  "nodejs_with_collector": "Dynatrace_OneAgent_1_273_3_20230810-161024_with_collector",
-  "collector": "Dynatrace_OneAgent_1_273_1_20230728-040942"
-}
-```
-
-pick the `<runtime>_with_collector` additionally you need to add `_<runtime>` to the value. 
-
-### Updating the layers -- script
-
-Call it as, while authenticated as an administrator in the `di-observability-production` AWS account:
-
-```sh
-./copy-layer.sh Dynatrace_OneAgent_1_271_112_20230731-073314_with_collector_java
-```
-
-It will take a few seconds to finish and output the layer version ARN.
-
-Update the DynatraceProductionVariables and DynatraceNonProductionVariables secrets in Secret Manager with the new layer ARN.
+The update-layers workflow runs on a weekly basis and updates the layers.
