@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-Ensure you run the latest VPC stack and SAM Deployment Pipeline stack versions. At time of writing, v2.0.1 and v2.36.0, respectively. You can check the version of stacks in the [CloudFormation Console](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/stacks) in the description column.
+Ensure you run the latest VPC stack and SAM Deployment Pipeline stack versions. At time of writing, v2.0.2 and v2.36.0, respectively. You can check the version of stacks in the [CloudFormation Console](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/stacks) in the description column.
 
 If you are using Secure Pipeline to deploy your SAM application, you will need to make the following modifications:
 
