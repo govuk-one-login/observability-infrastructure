@@ -1,10 +1,10 @@
 name: Update Lambda Layers
-# This workflow runs early Tuesday morning.
+# This workflow runs early on the 3rd of every month.
 # It runs the copy-layer.sh bash script for prod and nonprod
 
 on:
   schedule:
-    - cron:  '11 2 * * 2'
+    - cron:  '11 2 3 * *'
   workflow_dispatch:
 
 jobs:
