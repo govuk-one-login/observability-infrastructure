@@ -4,6 +4,8 @@ name: Update Lambda Layers
 
 on:
   schedule:
+    # Run at 02:11 on the third day of the month
+    # 11 minutes past to avoid the on the hour surge in demand
     - cron:  '11 2 3 * *'
   workflow_dispatch:
 
@@ -21,7 +23,7 @@ jobs:
           role-duration-seconds: 1800
       - name: Run Copy Layer
         run: |
-          ./copy-layer
+          ./copy-layer.sh
         env:
           AWS_DEFAULT_REGION: eu-west-2
           AWS_REGION: eu-west-2
