@@ -17,11 +17,11 @@ Ensure the task has sufficient IAM permissions to retrieve the secret and decryp
 - `arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables`
   - `secretsmanager:GetSecretValue`
 - `arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables`
- - `secretsmanager:GetSecretValue`
+  - `secretsmanager:GetSecretValue`
 - `arn:aws:secretsmanager:eu-west-2:216552277552:secret:*`
   - `secretsmanager:ListSecrets`
 - `arn:aws:kms:eu-west-2:216552277552:key/*`
- - `kms:Decrypt`
+  - `kms:Decrypt`
 
 Roughly the changes needed to be made to your template are below. This will only cover some circumstances; we are happy to help.
 
