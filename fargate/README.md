@@ -15,8 +15,13 @@ Your container needs to have access to the internet, so that it can send it's me
 Ensure the task has sufficient IAM permissions to retrieve the secret and decrypt the KMS key. At the time of writing, the resources are:
 
 - `arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables`
+  - `secretsmanager:GetSecretValue`
 - `arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables`
-- `arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe`
+ - `secretsmanager:GetSecretValue`
+- `arn:aws:secretsmanager:eu-west-2:216552277552:secret:*`
+  - `secretsmanager:ListSecrets`
+- `arn:aws:kms:eu-west-2:216552277552:key/*`
+ - `kms:Decrypt`
 
 Roughly the changes needed to be made to your template are below. This will only cover some circumstances; we are happy to help.
 
@@ -44,28 +49,39 @@ Conditions:
     !Equals [production, !Ref Environment]
 
 Mappings:
-  Constants:
-    DynatraceSecretArn: 
-      Value: !If
-        - IsProd
-        - arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
-        - arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables        
+  EnvironmentConfiguration:
+    dev:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+    build:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+    staging:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+    integration:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+    production:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables      
 
 Resources:
   ...
   TaskDefinition:
-    Type: AWS::ECS::TaskDefintion
+    Type: AWS::ECS::TaskDefinition
     Properties:
       ...
       ContainerDefintions:
       - ...
         Secrets:
         - Name: DT_TENANT
-          ValueFrom: !FindInMap [ Constants, DynatraceSecretArn, Value ]
+          ValueFrom: !Sub
+            - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}'
+            - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
         - Name: DT_TENANTTOKEN
-          ValueFrom: !FindInMap [ Constants, DynatraceSecretArn, Value ]
+          ValueFrom: !Sub
+            - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANTTOKEN}}'
+            - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
         - Name: DT_CONNECTION_POINT
-          ValueFrom: !FindInMap [ Constants, DynatraceSecretArn, Value ]
+          ValueFrom: !Sub
+            - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_POINT}}'
+            - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
       ...
 ```
 
@@ -78,6 +94,17 @@ The details for this are:
 - URL: khw46367.live.dynatrace.com
 - Username: khw46367
 - Password: Dynatrace PaaS Token
+
+```yaml
+...
+  - name: Login to GDS Dev Dynatrace Container Registry
+    uses: docker/login-action@v3
+    with:
+      registry: khw46367.live.dynatrace.com
+      username: khw46367
+      password: ${{ secrets.DYNATRACE_PAAS_TOKEN }}
+...
+```
 
 To create a PaaS token, navigate to <https://khw46367.apps.dynatrace.com/ui/apps/dynatrace.classic.tokens/ui/access-tokens/create> and select PaaS Token from the 'Template' dropdown, give it a sane name and create. You should store this somewhere safe, like GitHub Actions Secrets or whichever CI tool you use to build your image.
 
