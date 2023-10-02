@@ -6,9 +6,11 @@ It is recommended that you modify your Cloudformation template first so that the
 
 ## Prerequisites
 
-Ensure you run the latest VPC stack and SAM Deployment Pipeline stack versions. At time of writing, v2.0.2 and v2.36.0, respectively. You can check the version of stacks in the [CloudFormation Console](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/stacks) in the description column.
+Ensure you run the latest VPC stack and SAM Deployment Pipeline stack versions. At time of writing, v2.0.7 and v2.36.0, respectively. You can check the version of stacks in the [CloudFormation Console](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/stacks) in the description column.
 
 Your container needs to have access to the internet, so that it can send it's metrics to Dynatrace.
+
+To pull secrets from Secrets Manager, your VPC will need a VPC Endpoint for Secrets Manager.
 
 ## Template
 
@@ -71,17 +73,20 @@ Resources:
       - ...
         Secrets:
         - Name: DT_TENANT
-          ValueFrom: !Sub
-            - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}'
-            - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+          ValueFrom: !Join
+            - ''
+            - - !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+              - ':DT_TENANT::'
         - Name: DT_TENANTTOKEN
-          ValueFrom: !Sub
-            - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANTTOKEN}}'
-            - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+          ValueFrom: !Join
+            - ''
+            - - !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+              - ':DT_TENANTTOKEN::'
         - Name: DT_CONNECTION_POINT
-          ValueFrom: !Sub
-            - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_POINT}}'
-            - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+          ValueFrom: !Join
+          - ''
+          - - !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+            - ':DT_CONNECTION_POINT::'
       ...
 ```
 
