@@ -10,7 +10,7 @@ Ensure you run the latest VPC stack and SAM Deployment Pipeline stack versions. 
 
 Your container needs to have access to the internet, so that it can send it's metrics to Dynatrace.
 
-In order to pull secrets from Secrets mamnager you VPC will need a vpc endpoint for secrets manager.
+To pull secrets from Secrets Manager, your VPC will need a VPC Endpoint for Secrets Manager.
 
 ## Template
 
