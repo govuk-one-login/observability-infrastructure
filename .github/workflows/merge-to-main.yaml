@@ -73,7 +73,6 @@ jobs:
                     Owner : "${{ secrets.OBSERVABILITY_TEAM_EMAIL }}"
                     Source : "https://github.com/govuk-one-login/observability-infrastructure"
                 }
-                aws_region = "eu-west-2"
                 EOF
                 sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_DEV_TERRAFORM_STATE_BUCKET }}"/g' state.tf
             - name: Apply To Dev
@@ -108,7 +107,6 @@ jobs:
                     Owner : "${{ secrets.OBSERVABILITY_TEAM_EMAIL }}"
                     Source : "https://github.com/govuk-one-login/observability-infrastructure"
                 }
-                aws_region = "eu-west-2"
                 EOF
                 sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_PROD_TERRAFORM_STATE_BUCKET }}"/g' state.tf
             - name: Apply To Prod
