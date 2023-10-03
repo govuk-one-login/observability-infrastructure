@@ -5,9 +5,10 @@ name: Merge to Main
 on:
     pull_request:
         types:
-            - opened
             - edited
+            - opened
             - reopened
+            - synchronize
         branches:
             - main
     workflow_dispatch:
