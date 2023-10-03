@@ -13,7 +13,7 @@ resource "aws_iam_policy" "read" {
   path        = "/"
   description = "${var.kms_key_alias} read iam policy"
 
-  policy = data.aws_iam_policy_document.read_write.json
+  policy = data.aws_iam_policy_document.read.json
 }
 
 resource "aws_iam_policy" "read_write" {

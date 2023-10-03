@@ -1,10 +1,10 @@
 variable "name" {
   description = "Component strings of resource names."
-  type = list(string)
+  type        = list(string)
 }
 
 variable "tags" {
-description = "Tags to apply to created resources."
+  description = "Tags to apply to created resources."
   type        = map(string)
 }
 
