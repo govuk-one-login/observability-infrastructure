@@ -1,0 +1,95 @@
+name: Merge to Main
+# When merging to main make sure terraform is formatted and valid
+# generate configuration files and then deploy anyinfrastructure changes.
+
+on:
+    pull_request:
+        types:
+            - opened
+            - edited
+            - reopened
+        branches:
+            - main
+    workflow_dispatch:
+
+jobs:
+    check_terraform:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Validate Terraform
+              run: |
+                cd terraform
+                terraform init -backend=false
+                terraform fmt -recursive -diff -check
+                
+                for module in ./aws
+                do
+                    cd ${module}
+                    terraform init -backend=false
+                    terraform validate
+                    cd -
+                done
+                
+                for module in ./modules
+                do
+                    cd ${module}
+                    terraform init -backend=false
+                    terraform validate
+                    cd -
+                done
+                
+                terraform validate
+
+    deploy_to_observability_dev:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Generate Terraform Config
+              run: |
+                cd terraform
+                cat << EOF > terraform.auto.tfvars
+                name = ["di", "observability", "dev"]
+                tags = {
+                    Product : "GOV.UK Sign In"
+                    System : "Observability"
+                    Environment : "development"
+                    Owner : "${{ secrets.OBSERVABILITY_TEAM_EMAIL }}"
+                    Source : "https://github.com/govuk-one-login/observability-infrastructure"
+                }
+                aws_region = "eu-west-2"
+                EOF
+                sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_DEV_TERRAFORM_STATE_BUCKET }}"/g' filename
+            - name: Apply To Dev
+              run: |
+                cd terraform
+                terraform init
+                terraform apply -auto-approve
+
+    deploy_to_observability_prod:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Generate Terraform Config
+              run: |
+                cd terraform
+                cat << EOF > terraform.auto.tfvars
+                name = ["di", "observability", "dev"]
+                tags = {
+                    Product : "GOV.UK Sign In"
+                    System : "Observability"
+                    Environment : "development"
+                    Owner : "${{ secrets.OBSERVABILITY_TEAM_EMAIL }}"
+                    Source : "https://github.com/govuk-one-login/observability-infrastructure"
+                }
+                aws_region = "eu-west-2"
+                EOF
+                sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_DEV_TERRAFORM_STATE_BUCKET }}"/g' filename
+            - name: Apply To Prod
+              run: |
+                cd terraform
+                terraform init
+                terraform apply -auto-approve
