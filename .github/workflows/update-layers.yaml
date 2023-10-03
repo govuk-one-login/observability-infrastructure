@@ -22,7 +22,7 @@ jobs:
       - name: Assume AWS Role
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.DT_PROD_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.DT_GH_ACTIONS_PROD_ROLE_ARN }}
           aws-region: eu-west-2
           role-duration-seconds: 1800
       - name: Run Copy Layer

@@ -47,6 +47,13 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v3
+            - name: Assume AWS Role
+              # 468565409170
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                role-to-assume: ${{ secrets.DT_GH_ACTIONS_NON_PROD_ROLE_ARN }}
+                aws-region: eu-west-2
+                role-duration-seconds: 1800
             - name: Generate Terraform Config
               run: |
                 cd terraform
@@ -61,7 +68,7 @@ jobs:
                 }
                 aws_region = "eu-west-2"
                 EOF
-                sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_DEV_TERRAFORM_STATE_BUCKET }}"/g' filename
+                sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_DEV_TERRAFORM_STATE_BUCKET }}"/g' state.tf
             - name: Apply To Dev
               run: |
                 cd terraform
@@ -73,6 +80,13 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v3
+            - name: Assume AWS Role
+              # 216552277552
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                role-to-assume: ${{ secrets.DT_GH_ACTIONS_PROD_ROLE_ARN }}
+                aws-region: eu-west-2
+                role-duration-seconds: 1800
             - name: Generate Terraform Config
               run: |
                 cd terraform
@@ -87,7 +101,7 @@ jobs:
                 }
                 aws_region = "eu-west-2"
                 EOF
-                sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_PROD_TERRAFORM_STATE_BUCKET }}"/g' filename
+                sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_PROD_TERRAFORM_STATE_BUCKET }}"/g' state.tf
             - name: Apply To Prod
               run: |
                 cd terraform
