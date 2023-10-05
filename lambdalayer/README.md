@@ -1,6 +1,8 @@
 # Dynatrace Lambda Layer
 
-## Integrating into Cloudformation
+Below are the instructions for adding the Dyantrace Layer to a Lambda Function.
+
+If you have any issues with the implementation, please refer to the [FAQ](../FAQ.md) first.
 
 ### Prerequisites
 
