@@ -18,7 +18,7 @@ aws_region = "eu-west-2"
 
 Create a dynamoDB table in your environment called `terraform-state-lock-table` it needs a partition key named `LockID` with type of `String`.
 
-Add a bucket name to the `terraform/state.tf` file:
+Add a bucket name to the `terraform/site.tf` file:
 
 ```
 terraform {
@@ -31,7 +31,7 @@ terraform {
 }
 ```
 
-***DO NOT COMMIT CHANGES TO*** `terraform/state.tf`
+***DO NOT COMMIT CHANGES TO*** `terraform/site.tf`
 
 ## Development 
 
