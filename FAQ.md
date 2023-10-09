@@ -14,7 +14,7 @@
 
     To help with debugging consider adding the environment variable `DT_LOGGING_DESTINATION` and setting it to `stdout`
 
-## ECS farget
+## ECS Farget
 
 - **ECS Task is getting a permission denied exception**
 
