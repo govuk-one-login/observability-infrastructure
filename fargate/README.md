@@ -113,7 +113,7 @@ The details for this are:
 ...
 ```
 
-To create a PaaS token, navigate to <https://khw46367.apps.dynatrace.com/ui/apps/dynatrace.classic.tokens/ui/access-tokens/create> and select PaaS Token from the 'Template' dropdown, give it a sane name and create. You should store this somewhere safe, like GitHub Actions Secrets or whichever CI tool you use to build your image.
+To create a Dynatrace PaaS token, navigate to <https://khw46367.live.dynatrace.com/ui/access-tokens/create> and select PaaS Token from the 'Template' dropdown, give it a sane name and create. You should store this somewhere safe, like GitHub Actions Secrets or whichever CI tool you use to build your image.
 
 Add the following to the Dockerfile for your image:
 
@@ -122,6 +122,6 @@ COPY --from=khw46367.live.dynatrace.com/linux/oneagent-codemodules:<technology> 
 ENV LD_PRELOAD /opt/dynatrace/oneagent/agent/lib64/liboneagentproc.so
 ```
 
-`<technology>` should be either `nodejs` or `java` (if this doesn't fit your technology, let us know, and we'll add more options!)
+`<technology>` can be one of `nodejs`, `java` or `java-go` (if this doesn't fit your technology, let us know, and we'll add more options!)
 
 Using an Alpine base image, use `oneagent-codemodules-musl` instead for the image name.
