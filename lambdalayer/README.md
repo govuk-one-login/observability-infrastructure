@@ -81,7 +81,7 @@ Globals:
     Runtime: java17
     Architectures:
       - x86_64
-    # An additional 1.5GB is recommended for Java
+    # A minimum 1.5GB is recommended for Java
     MemorySize: 2048
     CodeSigningConfigArn: !If
       - UseCodeSigning
@@ -98,7 +98,7 @@ Resources:
 
 ### Notes
 
-When using Java, please ensure you add 1.5GB headroom of RAM for the layer to run with. This is not necessary with NodeJS or Python.
+When using Java, please ensure you have a minimum of 1.5GB of RAM for the layer to run with. This is not necessary with NodeJS or Python. Please see the Dynatrace [documentation](https://www.dynatrace.com/support/help/shortlink/aws-lambda-extension#lambda-java-rt-mem-limit).
 
 ## Updating the layers
 

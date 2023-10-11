@@ -4,7 +4,7 @@
 
 - **There is a performance degradation after adding the layer to AWS Lambda**
 
-    The Dynatrace layers may require an increase in memory, it is documented for Java, see the Dynatrace [documentation](https://www.dynatrace.com/support/help/shortlink/aws-lambda-extension#lambda-java-rt-mem-limit) here and the notes on the [README](./lambdalayer/README.md#notes). 
+    The Dynatrace layers may require a minimum amount of memory, it is documented for Java, see the Dynatrace [documentation](https://www.dynatrace.com/support/help/shortlink/aws-lambda-extension#lambda-java-rt-mem-limit) here and the notes on the [README](./lambdalayer/README.md#notes). 
 
 - **After adding the layer, lambdas are timing out**
 
