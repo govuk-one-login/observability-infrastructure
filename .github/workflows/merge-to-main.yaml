@@ -74,7 +74,7 @@ jobs:
             Source : "https://github.com/govuk-one-login/observability-infrastructure"
           }
           EOF
-          sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_DEV_TERRAFORM_STATE_BUCKET }}"/g' state.tf
+          sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_DEV_TERRAFORM_STATE_BUCKET }}"/g' site.tf
       - name: Apply To Dev
         run: |
           cd terraform
@@ -108,7 +108,7 @@ jobs:
             Source : "https://github.com/govuk-one-login/observability-infrastructure"
           }
           EOF
-          sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_PROD_TERRAFORM_STATE_BUCKET }}"/g' state.tf
+          sed -i 's/bucket         = ""/bucket         = "${{ secrets.OBSERVABILITY_PROD_TERRAFORM_STATE_BUCKET }}"/g' site.tf
       - name: Apply To Prod
         run: |
           cd terraform
