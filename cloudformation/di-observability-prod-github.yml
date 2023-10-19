@@ -19,6 +19,7 @@ Resources:
               StringLike:
                 "token.actions.githubusercontent.com:sub":
                   - "repo:govuk-one-login/observability-infrastructure*"
+                  - "repo:govuk-one-login/observability-dynatrace-resources*"
                 "token.actions.githubusercontent.com:aud": 
                   - "sts.amazonaws.com"
       Path: /
