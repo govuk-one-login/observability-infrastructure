@@ -3,14 +3,9 @@ name: Merge to Main
 # generate configuration files and then deploy anyinfrastructure changes.
 
 on:
-  pull_request:
-      types:
-          - edited
-          - opened
-          - reopened
-          - synchronize
-      branches:
-          - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
