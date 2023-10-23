@@ -18,6 +18,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.1
       - name: Validate Terraform
         run: |
           cd terraform
@@ -49,6 +53,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.1
       - name: Assume AWS Role
         # 468565409170
         uses: aws-actions/configure-aws-credentials@v2
@@ -83,6 +91,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.1
       - name: Assume AWS Role
         # 216552277552
         uses: aws-actions/configure-aws-credentials@v2

@@ -16,8 +16,14 @@ jobs:
   check_terraform:
     runs-on: ubuntu-latest
     steps:
+      - name: debug
+        run: terraform --version
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.1
       - name: Validate Terraform
         run: |
           cd terraform
@@ -52,6 +58,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.1
       - name: Assume AWS Role
         # 468565409170
         uses: aws-actions/configure-aws-credentials@v2
