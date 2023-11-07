@@ -10,7 +10,7 @@ If you have any issues with the implementation, please refer to the [FAQ](../FAQ
 
 Ensure you run the latest VPC stack and SAM Deployment Pipeline stack versions. At time of writing, v2.0.8 and v2.37.2, respectively. You can check the version of stacks in the [CloudFormation Console](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/stacks) in the description column.
 
-Your container needs to have access to the internet, so that it can send it's metrics to Dynatrace.
+The VPC Stack / Deployment Pipeline will ensure that your container can connect to the Dynatrace infrastructure, either by allowing egress through the Network Firewall, or via a PrivateLink connection.
 
 To pull secrets from Secrets Manager, your VPC will need a VPC Endpoint for Secrets Manager.
 

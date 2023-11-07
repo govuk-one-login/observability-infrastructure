@@ -13,7 +13,13 @@ If you are using Secure Pipeline to deploy your SAM application, you will need t
 - `AdditionalCodeSigningVersionArns`: add `arn:aws:signer:eu-west-2:216552277552:/signing-profiles/DynatraceSigner/5uwzCCGTPq`
 - `CustomKmsKeyArns`: add `arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe`
 
-Your Lambda Function needs to have access to the internet, so that it can send it's metrics to Dynatrace.
+The VPC Stack / Deployment Pipeline will ensure that your Lambda function can connect to the Dynatrace infrastructure, either by allowing egress through the Network Firewall, or via a PrivateLink connection.
+
+> [!NOTE]
+> At the moment, you'll need to have egress enabled in your VPC in order to allow a connection to Dynatrace.
+> If you didn't already set this up (by
+> [configuring an entry in your list of allowed domains](https://govukverify.atlassian.net/wiki/spaces/PLAT/pages/3531735041/VPC#Egress-Controls))
+> then the Lambda layer won't work for you yet.
 
 ### Template
 
