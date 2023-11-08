@@ -20,6 +20,7 @@ Resources:
                 "token.actions.githubusercontent.com:sub":
                   - "repo:govuk-one-login/observability-infrastructure*"
                   - "repo:govuk-one-login/observability-dynatrace-resources*"
+                  - "repo:govuk-one-login/observability-secrets*"                  
                 "token.actions.githubusercontent.com:aud": 
                   - "sts.amazonaws.com"
       Path: /
@@ -33,6 +34,7 @@ Resources:
                   - secretsmanager:GetSecretValue
                   - secretsmanager:PutSecretValue
                   - secretsmanager:ListSecrets
+                  - secretsmanager:CreateSecret                  
                 Resource: '*'
               - Effect: Allow
                 Action:
