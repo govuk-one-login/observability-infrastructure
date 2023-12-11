@@ -1,0 +1,222 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Role able to be used by GitHub Actions
+
+Parameters:
+  VpcStackName:
+    Type: String
+    Default: "vpc"
+  Environment:
+    Description: "The name of the environment to deploy to."
+    Type: "String"
+    Default: build
+    AllowedValues:
+    - "build"
+    - "production"
+
+Mappings:
+  EnvironmentConfiguration:
+    dev:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+    build:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+    staging:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+    integration:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+    production:
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ActiveGate Security Group
+      VpcId: { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-VpcId" } }
+
+  SecurityGroupVPCEndpointEgress:
+    Type: "AWS::EC2::SecurityGroupEgress"
+    Properties:
+      GroupId: !GetAtt SecurityGroup.GroupId
+      IpProtocol: tcp
+      DestinationSecurityGroupId: { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-AWSServicesEndpointSecurityGroupId" } }
+      FromPort: 443
+      ToPort: 443
+
+  SecurityGroupS3Egress:
+    Type: "AWS::EC2::SecurityGroupEgress"
+    Properties:
+      GroupId: !GetAtt SecurityGroup.GroupId
+      IpProtocol: tcp
+      DestinationPrefixListId: pl-7ca54015
+      FromPort: 443
+      ToPort: 443
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ''
+            - - 'arn:'
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  InstanceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ActiveGatePolicy
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:DescribeSecret
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:secretsmanager:eu-west-2:${AWS::AccountId}:secret:*
+          - Action:
+              - acm-pca:ListCertificateAuthorities
+              - apigateway:GET
+              - apprunner:ListServices
+              - appstream:DescribeFleets
+              - appsync:ListGraphqlApis
+              - athena:ListWorkGroups
+              - autoscaling:DescribeAutoScalingGroups
+              - cloudformation:ListStackResources
+              - cloudfront:ListDistributions
+              - cloudhsm:DescribeClusters
+              - cloudsearch:DescribeDomains
+              - cloudwatch:GetMetricData
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:ListMetrics
+              - codebuild:ListProjects
+              - datasync:ListTasks
+              - dax:DescribeClusters
+              - directconnect:DescribeConnections
+              - dms:DescribeReplicationInstances
+              - dynamodb:ListTables
+              - dynamodb:ListTagsOfResource
+              - ec2:DescribeAvailabilityZones
+              - ec2:DescribeInstances
+              - ec2:DescribeNatGateways
+              - ec2:DescribeSpotFleetRequests
+              - ec2:DescribeTransitGateways
+              - ec2:DescribeVolumes
+              - ec2:DescribeVpnConnections
+              - ecs:ListClusters
+              - eks:ListClusters
+              - elasticache:DescribeCacheClusters
+              - elasticbeanstalk:DescribeEnvironmentResources
+              - elasticbeanstalk:DescribeEnvironments
+              - elasticfilesystem:DescribeFileSystems
+              - elasticloadbalancing:DescribeInstanceHealth
+              - elasticloadbalancing:DescribeListeners
+              - elasticloadbalancing:DescribeLoadBalancers
+              - elasticloadbalancing:DescribeRules
+              - elasticloadbalancing:DescribeTags
+              - elasticloadbalancing:DescribeTargetHealth
+              - elasticmapreduce:ListClusters
+              - elastictranscoder:ListPipelines
+              - es:ListDomainNames
+              - events:ListEventBuses
+              - firehose:ListDeliveryStreams
+              - fsx:DescribeFileSystems
+              - gamelift:ListFleets
+              - glue:GetJobs
+              - inspector:ListAssessmentTemplates
+              - kafka:ListClusters
+              - kinesis:ListStreams
+              - kinesisanalytics:ListApplications
+              - kinesisvideo:ListStreams
+              - lambda:ListFunctions
+              - lambda:ListTags
+              - lex:GetBots
+              - logs:DescribeLogGroups
+              - mediaconnect:ListFlows
+              - mediaconvert:DescribeEndpoints
+              - mediapackage-vod:ListPackagingConfigurations
+              - mediapackage:ListChannels
+              - mediatailor:ListPlaybackConfigurations
+              - opsworks:DescribeStacks
+              - qldb:ListLedgers
+              - rds:DescribeDBClusters
+              - rds:DescribeDBInstances
+              - rds:DescribeEvents
+              - rds:ListTagsForResource
+              - redshift:DescribeClusters
+              - robomaker:ListSimulationJobs
+              - route53:ListHostedZones
+              - route53resolver:ListResolverEndpoints
+              - s3:ListAllMyBuckets
+              - sagemaker:ListEndpoints
+              - sns:ListTopics
+              - sqs:ListQueues
+              - storagegateway:ListGateways
+              - sts:AssumeRole
+              - sts:GetCallerIdentity
+              - swf:ListDomains
+              - tag:GetResources
+              - tag:GetTagKeys
+              - transfer:ListServers
+              - workmail:ListOrganizations
+              - workspaces:DescribeWorkspaces
+            Effect: Allow
+            Resource: '*'
+        Version: '2012-10-17'
+      Roles:
+        - !Ref InstanceRole
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: ami-0e8b638b5ffe86837
+        InstanceType: m6a.large
+        IamInstanceProfile:
+          Name: !Ref InstanceProfile
+        MetadataOptions:
+          HttpTokens: required
+        SecurityGroupIds:
+          - !GetAtt
+              - SecurityGroup
+              - GroupId
+        UserData:
+          Fn::Base64:
+            Fn::Sub:
+              - |-
+                #!/bin/bash
+                yum update -y && yum install -y jq
+                export DT_TOKEN=$(aws secretsmanager get-secret-value --region eu-west-2 --secret-id ${SecretArn} --query SecretString --output text | jq -r '.DT_PAAS_TOKEN')
+                export DT_URL=$(aws secretsmanager get-secret-value --region eu-west-2 --secret-id ${SecretArn} --query SecretString --output text | jq -r '.DT_CONNECTION_BASE_URL')
+                wget -O Dynatrace-ActiveGate-Linux-x86.sh "$DT_URL/api/v1/deployment/installer/gateway/unix/latest?arch=x86" --header="Authorization: Api-Token $DT_TOKEN"
+                wget -O Dynatrace-OneAgent-Linux-x86.sh "$DT_URL/api/v1/deployment/installer/agent/unix/default/latest?arch=x86" --header="Authorization: Api-Token $DT_TOKEN"
+                chmod +x Dynatrace-ActiveGate-Linux-x86.sh
+                chmod +x Dynatrace-OneAgent-Linux-x86.sh
+                ./Dynatrace-ActiveGate-Linux-x86.sh
+                ./Dynatrace-OneAgent-Linux-x86.sh
+              - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+
+  ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MaxSize: "1"
+      MinSize: "1"    
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      VPCZoneIdentifier:
+      - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-PrivateSubnetIdA" } }
+      - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-PrivateSubnetIdB" } }
+      - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-PrivateSubnetIdC" } }
