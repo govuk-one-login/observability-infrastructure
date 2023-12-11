@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Configure the AWSCloudFormationStackSetActionRole to enable use of AWS CloudFormation StackSets.
+Description: Role able to be used by GitHub Actions
 
 Resources:
   GitHubActionRole:
@@ -11,16 +11,15 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Federated:  "arn:aws:iam::216552277552:oidc-provider/token.actions.githubusercontent.com"
+              Federated: !Sub "arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com"
             Action:
-              - sts:AssumeRole
               - sts:AssumeRoleWithWebIdentity
             Condition:
               StringLike:
                 "token.actions.githubusercontent.com:sub":
-                  - "repo:govuk-one-login/observability-infrastructure*"
-                  - "repo:govuk-one-login/observability-dynatrace-resources*"
-                  - "repo:govuk-one-login/observability-secrets*"                  
+                  - "repo:govuk-one-login/observability-infrastructure:*"
+                  - "repo:govuk-one-login/observability-dynatrace-resources:*"
+                  - "repo:govuk-one-login/observability-secrets:*"                  
                 "token.actions.githubusercontent.com:aud": 
                   - "sts.amazonaws.com"
       Path: /
@@ -43,7 +42,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - signer:StartSigningJob
-                Resource: 'arn:aws:signer:eu-west-2:216552277552:/signing-profiles/DynatraceSigner'
+                Resource: 'arn:aws:signer:eu-west-2:*:/signing-profiles/DynatraceSigner'
               - Effect: Allow
                 Action:
                   - signer:DescribeSigningJob
