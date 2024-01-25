@@ -81,9 +81,9 @@ done
 
 echo $DYNATRACE_SECRETS > tmp.json
 
-aws secretsmanager put-secret-value --secret-id DynatraceNonProductionVariables --secret-string file://tmp.json > /dev/null
+# aws secretsmanager put-secret-value --secret-id DynatraceNonProductionVariables --secret-string file://tmp.json > /dev/null
 
 echo $PROD_DYNATRACE_SECRETS > tmp.json
-aws secretsmanager put-secret-value --secret-id DynatraceProductionVariables --secret-string file://tmp.json > /dev/null
+# aws secretsmanager put-secret-value --secret-id DynatraceProductionVariables --secret-string file://tmp.json > /dev/null
 
 rm -f tmp.json
