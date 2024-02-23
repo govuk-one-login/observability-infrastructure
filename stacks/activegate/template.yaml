@@ -15,13 +15,7 @@ Parameters:
 
 Mappings:
   EnvironmentConfiguration:
-    dev:
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     build:
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-    staging:
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
-    integration:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     production:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
@@ -182,7 +176,7 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: ami-0e8b638b5ffe86837
+        ImageId: ami-04af149c2dceba4ae
         InstanceType: m6a.large
         IamInstanceProfile:
           Name: !Ref InstanceProfile
@@ -197,6 +191,12 @@ Resources:
             Fn::Sub:
               - |-
                 #!/bin/bash
+                mkdir -p /var/lib/dynatrace/gateway/config/
+                cat > /var/lib/dynatrace/gateway/config/custom.properties <<EOF
+                [aws_monitoring]
+                aws_monitoring_enabled = true
+                aws_client_regions = "eu-west-2;eu-west-1;us-east-1"
+                EOF
                 yum update -y && yum install -y jq
                 export DT_TOKEN=$(aws secretsmanager get-secret-value --region eu-west-2 --secret-id ${SecretArn} --query SecretString --output text | jq -r '.DT_PAAS_TOKEN')
                 export DT_URL=$(aws secretsmanager get-secret-value --region eu-west-2 --secret-id ${SecretArn} --query SecretString --output text | jq -r '.DT_CONNECTION_BASE_URL')
