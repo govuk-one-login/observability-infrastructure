@@ -4,7 +4,7 @@ Description: Role able to be used by GitHub Actions
 Parameters:
   VpcStackName:
     Type: String
-    Default: "vpc"
+    Default: "DynatraceActivegateVPC"
   Environment:
     Description: "The name of the environment to deploy to."
     Type: "String"
@@ -59,8 +59,8 @@ Resources:
         - Fn::Join:
             - ''
             - - 'arn:'
-              - Ref: AWS::Partition
-              - :iam::aws:policy/AmazonSSMManagedInstanceCore
+              - !Ref 'AWS::Partition'
+              - ':iam::aws:policy/AmazonSSMManagedInstanceCore'
 
   InstanceRolePolicy:
     Type: AWS::IAM::Policy
