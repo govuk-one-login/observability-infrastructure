@@ -278,108 +278,108 @@ Resources:
     Properties:
       VpcId: !Ref Vpc
       InternetGatewayId: !Ref vpcInternetGateway
-  # DynatraceVPCEndpointSecurityGroup:
-  #   Type: 'AWS::EC2::SecurityGroup'
-  #   Properties:
-  #     GroupDescription: DynatraceActivegateVPC/DynatraceVPCEndpoint/SecurityGroup
-  #     SecurityGroupEgress:
-  #       - CidrIp: 0.0.0.0/0
-  #         Description: Allow all outbound traffic by default
-  #         IpProtocol: '-1'
-  #     SecurityGroupIngress:
-  #       - CidrIp: !GetAtt
-  #           - Vpc
-  #           - CidrBlock
-  #         Description: !Join
-  #           - ''
-  #           - - 'from '
-  #             - !GetAtt
-  #               - Vpc
-  #               - CidrBlock
-  #             - ':443'
-  #         FromPort: 443
-  #         IpProtocol: tcp
-  #         ToPort: 443
-  #     VpcId: !Ref Vpc
-  # DynatraceVPCEndpoint:
-  #   Type: 'AWS::EC2::VPCEndpoint'
-  #   Properties:
-  #     ServiceName: com.amazonaws.vpce.eu-west-2.vpce-svc-087a837d5ef308cec
-  #     VpcId: !Ref Vpc
-  #     PrivateDnsEnabled: false
-  #     SecurityGroupIds:
-  #       - !GetAtt
-  #         - DynatraceVPCEndpointSecurityGroup
-  #         - GroupId
-  #     SubnetIds:
-  #       - !Ref vpcPrivateSubnet1
-  #       - !Ref vpcPrivateSubnet2
-  #       - !Ref vpcPrivateSubnet3
-  #     VpcEndpointType: Interface
-  # prodHostedZone:
-  #   Type: 'AWS::Route53::HostedZone'
-  #   Properties:
-  #     Name: bhe21058.live.dynatrace.com.
-  #     VPCs:
-  #       - VPCId: !Ref Vpc
-  #         VPCRegion: eu-west-2
-  # prodRecordSet:
-  #   Type: 'AWS::Route53::RecordSet'
-  #   Properties:
-  #     Name: bhe21058.live.dynatrace.com.
-  #     Type: A
-  #     AliasTarget:
-  #       DNSName: !Select
-  #         - 1
-  #         - !Split
-  #           - ':'
-  #           - !Select
-  #             - 0
-  #             - !GetAtt
-  #               - DynatraceVPCEndpoint
-  #               - DnsEntries
-  #       HostedZoneId: !Select
-  #         - 0
-  #         - !Split
-  #           - ':'
-  #           - !Select
-  #             - 0
-  #             - !GetAtt
-  #               - DynatraceVPCEndpoint
-  #               - DnsEntries
-  #     HostedZoneId: !Ref prodHostedZone
-  # nonprodHostedZone:
-  #   Type: 'AWS::Route53::HostedZone'
-  #   Properties:
-  #     Name: khw46367.live.dynatrace.com.
-  #     VPCs:
-  #       - VPCId: !Ref Vpc
-  #         VPCRegion: eu-west-2
-  # nonprodrecordRecordSet:
-  #   Type: 'AWS::Route53::RecordSet'
-  #   Properties:
-  #     Name: khw46367.live.dynatrace.com.
-  #     Type: A
-  #     AliasTarget:
-  #       DNSName: !Select
-  #         - 1
-  #         - !Split
-  #           - ':'
-  #           - !Select
-  #             - 0
-  #             - !GetAtt
-  #               - DynatraceVPCEndpoint
-  #               - DnsEntries
-  #       HostedZoneId: !Select
-  #         - 0
-  #         - !Split
-  #           - ':'
-  #           - !Select
-  #             - 0
-  #             - !GetAtt
-  #               - DynatraceVPCEndpoint
-  #               - DnsEntries
-  #     HostedZoneId: !Ref nonprodHostedZone
+  DynatraceVPCEndpointSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: DynatraceActivegateVPC/DynatraceVPCEndpoint/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: '-1'
+      SecurityGroupIngress:
+        - CidrIp: !GetAtt
+            - Vpc
+            - CidrBlock
+          Description: !Join
+            - ''
+            - - 'from '
+              - !GetAtt
+                - Vpc
+                - CidrBlock
+              - ':443'
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      VpcId: !Ref Vpc
+  DynatraceVPCEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      ServiceName: com.amazonaws.vpce.eu-west-2.vpce-svc-087a837d5ef308cec
+      VpcId: !Ref Vpc
+      PrivateDnsEnabled: false
+      SecurityGroupIds:
+        - !GetAtt
+          - DynatraceVPCEndpointSecurityGroup
+          - GroupId
+      SubnetIds:
+        - !Ref vpcPrivateSubnet1
+        - !Ref vpcPrivateSubnet2
+        - !Ref vpcPrivateSubnet3
+      VpcEndpointType: Interface
+  prodHostedZone:
+    Type: 'AWS::Route53::HostedZone'
+    Properties:
+      Name: bhe21058.live.dynatrace.com.
+      VPCs:
+        - VPCId: !Ref Vpc
+          VPCRegion: eu-west-2
+  prodRecordSet:
+    Type: 'AWS::Route53::RecordSet'
+    Properties:
+      Name: bhe21058.live.dynatrace.com.
+      Type: A
+      AliasTarget:
+        DNSName: !Select
+          - 1
+          - !Split
+            - ':'
+            - !Select
+              - 0
+              - !GetAtt
+                - DynatraceVPCEndpoint
+                - DnsEntries
+        HostedZoneId: !Select
+          - 0
+          - !Split
+            - ':'
+            - !Select
+              - 0
+              - !GetAtt
+                - DynatraceVPCEndpoint
+                - DnsEntries
+      HostedZoneId: !Ref prodHostedZone
+  nonprodHostedZone:
+    Type: 'AWS::Route53::HostedZone'
+    Properties:
+      Name: khw46367.live.dynatrace.com.
+      VPCs:
+        - VPCId: !Ref Vpc
+          VPCRegion: eu-west-2
+  nonprodRecordSet:
+    Type: 'AWS::Route53::RecordSet'
+    Properties:
+      Name: khw46367.live.dynatrace.com.
+      Type: A
+      AliasTarget:
+        DNSName: !Select
+          - 1
+          - !Split
+            - ':'
+            - !Select
+              - 0
+              - !GetAtt
+                - DynatraceVPCEndpoint
+                - DnsEntries
+        HostedZoneId: !Select
+          - 0
+          - !Split
+            - ':'
+            - !Select
+              - 0
+              - !GetAtt
+                - DynatraceVPCEndpoint
+                - DnsEntries
+      HostedZoneId: !Ref nonprodHostedZone
 
 Outputs:
   VpcId:
@@ -387,6 +387,12 @@ Outputs:
     Value: !Ref Vpc
     Export:
       Name: !Sub "${AWS::StackName}-VpcId"
+
+  AWSServicesEndpointSecurityGroupId:
+    Description: The ID of the security group attached to the AWS services VPC endpoints.
+    Value: !GetAtt DynatraceVPCEndpointSecurityGroup.GroupId
+    Export:
+      Name: !Sub "${AWS::StackName}-AWSServicesEndpointSecurityGroupId"
 
   PrivateSubnetIdA:
     Description: The ID of the private subnet for Availability Zone A.
