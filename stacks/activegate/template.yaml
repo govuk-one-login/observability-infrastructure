@@ -198,7 +198,7 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: ami-04af149c2dceba4ae
+        ImageId: ami-0f36fa10cc7d04b5b
         InstanceType: m6a.large
         IamInstanceProfile:
           Name: !Ref InstanceProfile
