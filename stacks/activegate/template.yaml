@@ -10,8 +10,8 @@ Parameters:
     Type: "String"
     Default: build
     AllowedValues:
-    - "build"
-    - "production"
+      - "build"
+      - "production"
 
 Mappings:
   EnvironmentConfiguration:
@@ -32,7 +32,11 @@ Resources:
     Properties:
       GroupId: !GetAtt InstanceSecurityGroup.GroupId
       IpProtocol: tcp
-      DestinationSecurityGroupId: { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-AWSServicesEndpointSecurityGroupId" } }
+      DestinationSecurityGroupId:
+        {
+          Fn::ImportValue:
+            { Fn::Sub: "${VpcStackName}-AWSServicesEndpointSecurityGroupId" },
+        }
       FromPort: 443
       ToPort: 443
 
@@ -54,13 +58,13 @@ Resources:
             Effect: Allow
             Principal:
               Service: ec2.amazonaws.com
-        Version: '2012-10-17'
+        Version: "2012-10-17"
       ManagedPolicyArns:
         - Fn::Join:
-            - ''
-            - - 'arn:'
-              - !Ref 'AWS::Partition'
-              - ':iam::aws:policy/AmazonSSMManagedInstanceCore'
+            - ""
+            - - "arn:"
+              - !Ref "AWS::Partition"
+              - ":iam::aws:policy/AmazonSSMManagedInstanceCore"
 
   InstanceRolePolicy:
     Type: AWS::IAM::Policy
@@ -75,9 +79,13 @@ Resources:
             Resource:
               - !Sub arn:aws:secretsmanager:eu-west-2:${AWS::AccountId}:secret:*
               - Fn::Join:
-                  - ''
-                  - - !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
-                    - '*'
+                  - ""
+                  - - !FindInMap [
+                        EnvironmentConfiguration,
+                        !Ref Environment,
+                        dynatraceSecretArn,
+                      ]
+                    - "*"
           - Action:
               - kms:Decrypt
             Effect: Allow
@@ -170,8 +178,8 @@ Resources:
               - workmail:ListOrganizations
               - workspaces:DescribeWorkspaces
             Effect: Allow
-            Resource: '*'
-        Version: '2012-10-17'
+            Resource: "*"
+        Version: "2012-10-17"
       Roles:
         - !Ref InstanceRole
 
@@ -193,8 +201,8 @@ Resources:
           HttpTokens: required
         SecurityGroupIds:
           - !GetAtt
-              - InstanceSecurityGroup
-              - GroupId
+            - InstanceSecurityGroup
+            - GroupId
         UserData:
           Fn::Base64:
             Fn::Sub:
@@ -215,7 +223,12 @@ Resources:
                 chmod +x Dynatrace-OneAgent-Linux-x86.sh
                 ./Dynatrace-ActiveGate-Linux-x86.sh
                 ./Dynatrace-OneAgent-Linux-x86.sh
-              - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+              - SecretArn:
+                  !FindInMap [
+                    EnvironmentConfiguration,
+                    !Ref Environment,
+                    dynatraceSecretArn,
+                  ]
 
   ASG:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -232,5 +245,5 @@ Resources:
           Value: DynatraceActivegateASG
           PropagateAtLaunch: true
       VPCZoneIdentifier:
-      - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-ProtectedSubnetIdA" } }
-      - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-ProtectedSubnetIdB" } }
+        - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-ProtectedSubnetIdA" } }
+        - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-ProtectedSubnetIdB" } }
