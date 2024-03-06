@@ -3,7 +3,7 @@ name: Deploy Dynatrace ActiveGate
 on:
   push:
     branches:
-      - cloudformation-activegate
+      - main
 
 jobs:
   build:
@@ -23,14 +23,21 @@ jobs:
 
       - name: Set up SAM cli
         uses: aws-actions/setup-sam@v2
+  
+      - name: Set up AWS creds For Pipeline
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          role-to-assume: ${{ secrets.DT_GH_ACTIONS_OBSERVABILITY_BUILD_ROLE_ARN }}
+          aws-region: eu-west-2
+          role-duration-seconds: 1800
 
       - name: SAM Validate
-        run: sam validate -t stacks/activegate/template.yaml        
+        run: sam validate --lint -t ./stacks/activegate/template.yaml  
 
-      # - name: Set up AWS creds For Pipeline
-      #   uses: aws-actions/configure-aws-credentials@v4.0.2
-      #   with:
-      #     role-to-assume: ${{ secrets.DT_GH_ACTIONS_OBSERVABILITY_BUILD_ROLE_ARN }}
-      #     aws-region: eu-west-2
-      #     role-duration-seconds: 1800
-        
+      - name: Deploy SAM app
+        uses: alphagov/di-devplatform-upload-action@v3
+        with:
+            artifact-bucket-name: ${{ secrets.DT_GH_ACTIONS_OBSERVABILITY_BUILD_ARTIFACT_BUCKET }}
+            signing-profile-name: ${{ secrets.DT_GH_ACTIONS_OBSERVABILITY_BUILD_SIGNING_PROFILE_NAME }}
+            working-directory: ./stacks/activegate
+            template-file: template.yaml
