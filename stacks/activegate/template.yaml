@@ -247,3 +247,5 @@ Resources:
       VPCZoneIdentifier:
         - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-ProtectedSubnetIdA" } }
         - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-ProtectedSubnetIdB" } }
+        - { Fn::ImportValue: { Fn::Sub: "${VpcStackName}-ProtectedSubnetIdC" } }
+
