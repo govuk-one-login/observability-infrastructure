@@ -193,7 +193,7 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
-        ImageId: ami-09885f3ec1667cbfc
+        ImageId: ami-0f36fa10cc7d04b5b
         InstanceType: m6a.large
         IamInstanceProfile:
           Name: !Ref InstanceProfile
@@ -236,7 +236,7 @@ Resources:
       AutoScalingGroupName: "DynatraceActivegateASG"
       MaxSize: "1"
       MinSize: "1"
-      DefaultInstanceWarmup: 900
+      DefaultInstanceWarmup: 901
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
