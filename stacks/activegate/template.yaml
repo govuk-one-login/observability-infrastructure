@@ -4,7 +4,7 @@ Description: Role able to be used by GitHub Actions
 Parameters:
   VpcStackName:
     Type: String
-    Default: "DynatraceActivegate"
+    Default: "vpc"
   Environment:
     Description: "The name of the environment to deploy to."
     Type: "String"
@@ -236,7 +236,7 @@ Resources:
       AutoScalingGroupName: "DynatraceActivegateASG"
       MaxSize: "1"
       MinSize: "1"
-      DefaultInstanceWarmup: 901
+      DefaultInstanceWarmup: 900
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
