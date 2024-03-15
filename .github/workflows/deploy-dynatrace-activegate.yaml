@@ -31,13 +31,27 @@ jobs:
           aws-region: eu-west-2
           role-duration-seconds: 1800
 
+      - name: Update template to latest hardened AMI
+        run: |
+          LATEST_AMI=$(aws ec2 describe-images \
+          --owners aws-marketplace \
+          --filters 'Name=name,Values=*'${PRODUCT_ID}'*' \
+          --query 'Images[*].[ImageId,CreationDate]' --output text | sort -k2 -r | head -n1 | awk '{ print $1 }')
+          sed -i "s/ImageId: /ImageId: $LATEST_AMI/" ./stacks/activegate/template.yaml
+          echo "Latest hardened AMI=${LATEST_AMI}" >> "$GITHUB_OUTPUT"
+          cat ./stacks/activegate/template.yaml
+        env:
+          AWS_DEFAULT_REGION: eu-west-2
+          # Product ID belongs to the aws marketplace owner and is unique to the ami offering
+          PRODUCT_ID: "c41d38c4-3f6a-4434-9a86-06dd331d3f9c"
+
       - name: SAM Validate
         run: sam validate --lint -t ./stacks/activegate/template.yaml
 
-      - name: Deploy SAM app
-        uses: alphagov/di-devplatform-upload-action@v3
-        with:
-          artifact-bucket-name: ${{ secrets.DT_GH_ACTIONS_OBSERVABILITY_BUILD_ARTIFACT_BUCKET }}
-          signing-profile-name: ${{ secrets.DT_GH_ACTIONS_OBSERVABILITY_BUILD_SIGNING_PROFILE_NAME }}
-          working-directory: ./stacks/activegate
-          template-file: template.yaml
+      # - name: Deploy SAM app
+      #   uses: alphagov/di-devplatform-upload-action@v3
+      #   with:
+      #     artifact-bucket-name: ${{ secrets.DT_GH_ACTIONS_OBSERVABILITY_BUILD_ARTIFACT_BUCKET }}
+      #     signing-profile-name: ${{ secrets.DT_GH_ACTIONS_OBSERVABILITY_BUILD_SIGNING_PROFILE_NAME }}
+      #     working-directory: ./stacks/activegate
+      #     template-file: template.yaml
