@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Infrastracture for CloudWatch Metric Streams and delivering to Dynatrace
+
+Parameters:
+  FirehoseHttpDeliveryEndpoint:
+    Description: URL to which Firehose will deliver stream
+    Type: String
+    AllowedValues: ['https://aws.cloud.dynatrace.com','https://aws.cloud.dynatrace.com/','https://aws.cloud.dynatrace.com/metrics','https://us.aws.cloud.dynatrace.com','https://us.aws.cloud.dynatrace.com/','https://us.aws.cloud.dynatrace.com/metrics','https://eu.aws.cloud.dynatrace.com','https://eu.aws.cloud.dynatrace.com/','https://eu.aws.cloud.dynatrace.com/metrics']
+    Default: 'https://aws.cloud.dynatrace.com/metrics'
+  DynatraceEnvironmentUrl:
+    Description: URL to Dynatrace environment
+    Type: String
+    MinLength: 16 # "https://" + at least 8-char SaaS tenant name
+  RequireValidCertificate:
+    Description: Require valid SSL certificate for Dynatrace cluster communication
+    Type: String
+    AllowedValues: [true, false]
+    Default: true
+
+
+Resources:
+  FirehoseMetricStreams:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      DeliveryStreamType: DirectPut
+      HttpEndpointDestinationConfiguration:
+        BufferingHints:
+          IntervalInSeconds: 60
+          SizeInMBs: 3
+        EndpointConfiguration:
+          AccessKey: "{{resolve:secretsmanager:DynatraceSecrets:SecretString:DYNATRACE_API_KEY}}"
+          Name: Dynatrace delivery endpoint
+          Url: !Ref FirehoseHttpDeliveryEndpoint
+        RequestConfiguration:
+          CommonAttributes:
+            - AttributeName: dt-url
+              AttributeValue: !Ref DynatraceEnvironmentUrl
+            - AttributeName: require-valid-certificate
+              AttributeValue: !Ref RequireValidCertificate
+          ContentEncoding: GZIP
+        RetryOptions:
+          DurationInSeconds: 900
+        S3BackupMode: FailedDataOnly
+        S3Configuration:
+          BucketARN: !GetAtt FailedDataBucket.Arn
+          RoleARN: !GetAtt FailedDataBucketRole.Arn
+
+  FailedDataBucketPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles:
+        - !Ref FailedDataBucketRole
+      PolicyName: firehose_delivery_policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:AbortMultipartUpload'
+              - 's3:GetBucketLocation'
+              - 's3:GetObject'
+              - 's3:ListBucket'
+              - 's3:ListBucketMultipartUploads'
+              - 's3:PutObject'
+            Resource:
+              - !GetAtt FailedDataBucket.Arn
+              - !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref FailedDataBucket
+                  - '*'
+
+  FailedDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 30
+            Status: Enabled
+
+  FailedDataBucketRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Ref 'AWS::AccountId'
+
+  MetricStreamsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - streams.metrics.cloudwatch.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'firehose:PutRecord'
+                  - 'firehose:PutRecordBatch'
+                Resource: !GetAtt FirehoseMetricStreams.Arn
+      Description: A metric stream role
+
+  MetricStream:
+    Type: AWS::CloudWatch::MetricStream
+    Properties:
+      FirehoseArn: !GetAtt FirehoseMetricStreams.Arn
+      IncludeLinkedAccountsMetrics: true
+      RoleArn: !GetAtt MetricStreamsRole.Arn
+      OutputFormat: 'opentelemetry0.7'
