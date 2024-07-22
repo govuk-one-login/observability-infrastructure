@@ -130,3 +130,10 @@ Resources:
       IncludeLinkedAccountsMetrics: true
       RoleArn: !GetAtt MetricStreamsRole.Arn
       OutputFormat: 'opentelemetry0.7'
+      StatisticsConfigurations:
+        - AdditionalStatistics:
+            - p95
+            - p99
+          IncludeMetrics:
+            - MetricName: Latency
+              Namespace: AWS/ApiGateway
