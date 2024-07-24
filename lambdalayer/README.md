@@ -103,3 +103,27 @@ When using Java, please ensure you have a minimum of 1.5GB of RAM for the layer 
 ## Updating the layers
 
 The update-layers workflow runs on a weekly basis and updates the layers, but it can also be executed manually.
+
+## Deploying the layers
+
+Deployment workflows are triggered as such:
+
+DynatraceTestVariables Secret in dev account: on "feature/*"
+DynatraceNonProductionVariables Secret in prod: on "main"
+DynatraceProductionVariables Secret in prod: on "tag" VERSION
+
+You are able to specifying the dynatrace one agent version you want to deploy by updating /lambdalayer/one-agent-version/VERSION. This allows the repo to standardise and provide source control to the one agent version deployed to all new builds across the estate.
+
+In order to upgrade all lambdas teams will need to rebuild all lambda builds to pick up the latest LAYER_VERSION_ARN available in the updated DynatraceProductionVariables secret.
+
+## Notes for future
+
+Currently we have one version that upgrades all layers:
+
+java
+python
+nodeJS
+
+Problem: If there is a problem with one layer, the whole release must be rolled back. 
+
+Solution: Having individual version control for each layer type is a feature that should be looked into in the future. 

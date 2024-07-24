@@ -1,0 +1,38 @@
+name: Testing the release of the lambda Layer
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+
+jobs:
+  dev:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Assume AWS Role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.DT_GH_ACTIONS_DEV_ROLE_ARN }}
+          aws-region: eu-west-2
+          role-duration-seconds: 1800
+      - name: Get Version
+        id: get_version
+        run: |
+          # get the version from ./one-agent-version/VERSION
+          TEST_VERSION=$(cat ./one-agent-version/VERSION)
+          echo "Test Version is $TEST_VERSION"
+          echo "TEST_VERSION" >> $GITHUB_OUTPUT
+      # - name: Run Deploy Layer Test Variable
+      #   run: |
+      #     echo "Deploying $TEST_VERSION to the test layer."
+      #     ./lambdalayer/deploy-layer.sh
+      #   env:
+      #     AWS_DEFAULT_REGION: eu-west-2
+      #     AWS_REGION: eu-west-2
+      #     ENV: test
+      #     RELEASE_VERSION: ${{ steps.get_version.outputs.TEST_VERSION }}
