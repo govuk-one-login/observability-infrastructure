@@ -21,7 +21,10 @@ fi
 #TEST 1_273_3
 # List all the lambda layer names in this AWS account and only select the ones with the correct release version
 # IAM
+echo "STATUS: Fetching layer names."
+
 LAYER_NAMES=`aws lambda list-layers | jq '.Layers[] | .LayerName' -r` | grep $RELEASE_VERSION
+echo "STATUS: Recovered layer names. $LAYER_NAMES"
 
 #if LAYER_NAMES is empty then error and exit
 if [ -z "$LAYER_NAMES" ]    
@@ -30,7 +33,6 @@ then
     exit 1 # terminate and indicate error
 fi
 
-echo "STATUS: Recovered layer names. $LAYER_NAMES"
 
 # Loop through all lambda layers of release version for NodeJS, Java, python
 for LAYER_NAME in $LAYER_NAMES
