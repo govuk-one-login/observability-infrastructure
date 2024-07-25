@@ -15,7 +15,7 @@ then
     DYNATRACE_SECRETS=`aws secretsmanager get-secret-value --secret-id DynatraceProductionVariables | jq -r ".SecretString | fromjson"`
 elif 
 then
-    echo ERROR: Failed to specify valid environment in github CI.
+    echo "ERROR: Failed to specify valid environment in github CI."
     exit 1 # terminate and indicate error
 fi
 
@@ -26,7 +26,7 @@ LAYER_NAMES=`aws lambda list-layers | jq '.Layers[] | .LayerName' -r` | grep $RE
 #if LAYER_NAMES is empty then error and exit
 if [ -z "$LAYER_NAMES" ]    
 then
-    echo ERROR: Failed to retreve the desired version $RELEASE_VERSION
+    echo "ERROR: Failed to retreve the desired version $RELEASE_VERSION"
     exit 1 # terminate and indicate error
 fi
 
@@ -38,6 +38,7 @@ do
 
     # get aws layer arns
     LAYER_VERSION_ARN=`aws lambda list-layer-versions-by-layer-name --layer-name $LAYER_NAME | jq '.LayerVersions[0].LayerVersionArn' -r`
+    echo "Selecting layer: $LAYER_NAME"
 
     if [ $RUNTIME = 'nodejs' ]
     then
@@ -51,11 +52,12 @@ do
     fi
 done
 
-echo Updating the ${ENV} lambda layer version for one agent to version ${RELEASE_VERSION}
+echo "Updating the ${ENV} lambda layer version for one agent to version ${RELEASE_VERSION}"
 echo $DYNATRACE_SECRETS > tmp.json
 
 # Update the secrets manager secret with the new variable
 if [$ENV = 'test'] 
+    echo "Deploying selected layers to $ENV"
     aws secretsmanager put-secret-value --secret-id DynatraceDevVariables --secret-string file://tmp.json > /dev/null
 then
 # elif [$ENV = 'nonprod']
@@ -66,7 +68,7 @@ then
 #     aws secretsmanager put-secret-value --secret-id DynatraceProductionVariables --secret-string file://tmp.json > /dev/null
 elif 
 then
-    echo ERROR: Failed to specify valid environment in github CI.
+    echo "ERROR: Failed to specify valid environment in github CI."
     exit 1 # terminate and indicate error
 fi
 
