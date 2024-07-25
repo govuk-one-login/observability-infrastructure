@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eu
-echo "STATUS: Script starting"
+echo "STATUS: Script starting. The release version is $RELEASE_VERSION and the env is $ENV"
 # Set secrets manager secrets as local environment variables
 DYNATRACE_CONFIG=`aws secretsmanager get-secret-value --secret-id DynatraceLayersConfig`
 DYNATRACE_PAAS_TOKEN=`echo $DYNATRACE_CONFIG | jq -r ".SecretString | fromjson | .TOKEN"`
