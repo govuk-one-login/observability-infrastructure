@@ -20,6 +20,7 @@ fi
 
 #TEST 1_273_3
 # List all the lambda layer names in this AWS account and only select the ones with the correct release version
+# IAM
 LAYER_NAMES=`aws lambda list-layers | jq '.Layers[] | .LayerName' -r` | grep $RELEASE_VERSION
 
 #if LAYER_NAMES is empty then error and exit
