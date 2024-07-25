@@ -7,14 +7,14 @@ DYNATRACE_PAAS_TOKEN=`echo $DYNATRACE_CONFIG | jq -r ".SecretString | fromjson |
 BUCKET_NAME=`echo $DYNATRACE_CONFIG| jq -r ".SecretString | fromjson | .S3_BUCKET"`
 SIGNING_PROFILE=`echo $DYNATRACE_CONFIG | jq -r ".SecretString | fromjson | .SIGNING_PROFILE"`
 
-if [$ENV = 'nonprod'] || [$ENV = 'test']
+if [ "$ENV" = 'nonprod' ] || [ "$ENV" = 'test' ]
 then
-    DYNATRACE_SECRETS=`aws secretsmanager get-secret-value --secret-id DynatraceNonProductionVariables | jq -r ".SecretString | fromjson"`
-elif [$ENV = 'prod']
+    DYNATRACE_SECRETS=$(aws secretsmanager get-secret-value --secret-id DynatraceNonProductionVariables | jq -r ".SecretString | fromjson")
+elif [ "$ENV" = 'prod' ]
 then
-    DYNATRACE_SECRETS=`aws secretsmanager get-secret-value --secret-id DynatraceProductionVariables | jq -r ".SecretString | fromjson"`
+    DYNATRACE_SECRETS=$(aws secretsmanager get-secret-value --secret-id DynatraceProductionVariables | jq -r ".SecretString | fromjson")
 else
-    echo "ERROR: Failed to specify valid environment in github CI."
+    echo "ERROR: Failed to specify valid environment in github CI. Variable is $ENV"
     exit 1 # terminate and indicate error
 fi
 

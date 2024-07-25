@@ -30,6 +30,8 @@ jobs:
       - name: Run Deploy Layer Test Variable
         run: |
           echo "Deploying $RELEASE_VERSION to the test layer."
+          export ENV=$ENV
+          export RELEASE_VERSION=$RELEASE_VERSION
           ./lambdalayer/deploy-layer.sh
         env:
           AWS_DEFAULT_REGION: eu-west-2
