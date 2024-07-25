@@ -31,7 +31,7 @@ jobs:
         run: |
           export ENV=test
           export RELEASE_VERSION=${{ steps.get_version.outputs.TEST_VERSION }}
-          echo "Deploying $RELEASE_VERSION to the test layer."
+          echo "Deploying $RELEASE_VERSION to the $ENV layer."
           ./lambdalayer/deploy-layer.sh
         env:
           AWS_DEFAULT_REGION: eu-west-2

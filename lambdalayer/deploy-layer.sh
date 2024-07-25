@@ -30,6 +30,8 @@ then
     exit 1 # terminate and indicate error
 fi
 
+echo "STATUS: Recovered layer names. $LAYER_NAMES"
+
 # Loop through all lambda layers of release version for NodeJS, Java, python
 for LAYER_NAME in $LAYER_NAMES
 do
