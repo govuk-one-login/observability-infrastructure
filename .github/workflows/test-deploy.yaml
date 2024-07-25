@@ -23,8 +23,8 @@ jobs:
       - name: Get Version
         id: get_version
         run: |
-          # get the version from ./one-agent-version/VERSION
-          TEST_VERSION=$(cat ./one-agent-version/VERSION)
+          # get the version from ./lambdalayer/one-agent-version/VERSION
+          TEST_VERSION=$(cat ./lambdalayer/one-agent-version/VERSION)
           echo "Test Version is $TEST_VERSION"
           echo "TEST_VERSION" >> $GITHUB_OUTPUT
       # - name: Run Deploy Layer Test Variable

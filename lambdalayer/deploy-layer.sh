@@ -56,7 +56,7 @@ echo $DYNATRACE_SECRETS > tmp.json
 
 # Update the secrets manager secret with the new variable
 if [$ENV = 'test'] 
-    aws secretsmanager create-secret --name DynatraceDevVariables --secret-string file://tmp.json > /dev/null
+    aws secretsmanager put-secret-value --secret-id DynatraceDevVariables --secret-string file://tmp.json > /dev/null
 then
 # elif [$ENV = 'nonprod']
 # then
