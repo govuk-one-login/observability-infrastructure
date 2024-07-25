@@ -13,8 +13,7 @@ then
 elif [$ENV = 'prod']
 then
     DYNATRACE_SECRETS=`aws secretsmanager get-secret-value --secret-id DynatraceProductionVariables | jq -r ".SecretString | fromjson"`
-elif 
-then
+else
     echo "ERROR: Failed to specify valid environment in github CI."
     exit 1 # terminate and indicate error
 fi
