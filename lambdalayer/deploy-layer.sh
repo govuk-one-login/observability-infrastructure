@@ -19,44 +19,82 @@ else
 fi
 
 #TEST 1_273_3
-# List all the lambda layer names in this AWS account and only select the ones with the correct release version
+# List all the lambda layer arns in this AWS account and only select the ones with the correct release version
 echo "STATUS: Fetching layer names..."
 
-LAYER_NAMES=$(aws lambda list-layers | jq '.Layers[] | .LayerName' -r) #| grep "$RELEASE_VERSION")
-echo "STATUS: Recovered layer names. $LAYER_NAMES"
+LAYER_ARNS=$(aws lambda list-layers | jq '.Layers[] | .LayerArn' -r | grep "$RELEASE_VERSION")
+echo "STATUS: Recovered layer arns. $LAYER_ARNS"
 echo "STATUS: Searching for version $RELEASE_VERSION..."
 
-###BREAKING POINT
-LAYER_NAMES=$(echo "$LAYER_NAMES" | grep "$RELEASE_VERSION")
-echo "STATUS: Recovered layer names of version $RELEASE_VERSION"
+LAYER_ARNS=$(echo "$LAYER_ARNS" | grep "$RELEASE_VERSION")
+echo "STATUS: Recovered layer ARNS of version $RELEASE_VERSION"
 
-#if LAYER_NAMES is empty then error and exit
-if [ -z "$LAYER_NAMES" ]    
+
+### TESTING LAYER_ARNS
+
+has_java=false
+has_nodejs=false
+has_python=false
+layer_count=0
+
+# Check that there are exactly three arns
+# Check for each required runtime
+for arn in $LAYER_ARNS
+do
+    RUNTIME=`echo "$arn" | tr '_' '\n' | tail -n 1`
+    echo "Runtime: $RUNTIME"
+    layer_count=$((layer_count+1))
+
+    if [[ "$RUNTIME" == 'java' ]]
+    then
+        has_java=true
+    elif [[ "$RUNTIME" == 'nodejs' ]]
+    then
+        has_nodejs=true
+    elif [[ "$RUNTIME" == 'python' ]]
+    then
+        has_python=true
+    fi
+done
+
+# Verify all required runtimes are present
+if ! $has_java || ! $has_nodejs || ! $has_python
 then
-    echo "ERROR: Failed to retreve the desired version $RELEASE_VERSION"
-    exit 1 # terminate and indicate error
+    echo "ERROR: The list of ARNs must include one each for Java, Node.js, and Python."
+    exit 1
+else
+    echo "All required ARNs are present."
 fi
 
+# Verify there are exactly three ARNs
+echo "Number of layers found: $layer_count"
+if [ $layer_count != 3 ]
+then
+    echo "ERROR: There must be exactly 3 layers. No more or less."
+    exit 1
+fi
 
-# Loop through all lambda layers of release version for NodeJS, Java, python
-for LAYER_NAME in $LAYER_NAMES
+### RELEASE
+
+# Loop through all lambda layer ARNS of release the layer arn for NodeJS, Java, python
+for LAYER_ARN in $LAYER_ARNS
 do
     # get the runtime of the current layer
-    RUNTIME=`echo "$LAYER_NAME" | tr '_' '\n' | tail -n 1`
-
-    # get aws layer arns
-    LAYER_VERSION_ARN=`aws lambda list-layer-versions-by-layer-name --layer-name $LAYER_NAME | jq '.LayerVersions[0].LayerVersionArn' -r`
-    echo "Selecting layer: $LAYER_NAME"
+    RUNTIME=`echo "$LAYER_ARN" | tr '_' '\n' | tail -n 1`
 
     if [ $RUNTIME = 'nodejs' ]
     then
-        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".NODEJS_LAYER = \"$LAYER_VERSION_ARN\""`
+        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".NODEJS_LAYER = \"$LAYER_ARN\""`
     elif [ $RUNTIME = 'java' ]
     then
-        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".JAVA_LAYER = \"$LAYER_VERSION_ARN\""`
+        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".JAVA_LAYER = \"$LAYER_ARN\""`
     elif [ $RUNTIME = 'python' ]
     then
-        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".PYTHON_LAYER = \"$LAYER_VERSION_ARN\""`
+        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".PYTHON_LAYER = \"$LAYER_ARN\""`
+    else
+    then
+        echo "ERROR: Failed to specify valid runtime."
+        exit 1 # terminate and indicate error
     fi
 done
 
