@@ -24,11 +24,6 @@ echo "STATUS: Fetching layer names..."
 
 LAYER_ARNS=$(aws lambda list-layers | jq '.Layers[] | .LayerArn' -r | grep "$RELEASE_VERSION")
 echo "STATUS: Recovered layer arns. $LAYER_ARNS"
-echo "STATUS: Searching for version $RELEASE_VERSION..."
-
-LAYER_ARNS=$(echo "$LAYER_ARNS" | grep "$RELEASE_VERSION")
-echo "STATUS: Recovered layer ARNS of version $RELEASE_VERSION"
-
 
 ### TESTING LAYER_ARNS
 
@@ -105,7 +100,7 @@ if [$ENV = 'test']
     echo "Deploying selected layers to $ENV"
     # aws secretsmanager put-secret-value --secret-id DynatraceDevVariables --secret-string file://tmp.json > /dev/null
     echo "Secret push to DynatraceDevVariables successful"
-then
+# then
 # elif [$ENV = 'nonprod']
 # then
 #     aws secretsmanager put-secret-value --secret-id DynatraceNonProductionVariables --secret-string file://tmp.json > /dev/null
@@ -114,8 +109,7 @@ then
 # then
 #     aws secretsmanager put-secret-value --secret-id DynatraceProductionVariables --secret-string file://tmp.json > /dev/null
 #     echo "Secret push to DynatraceProductionVariables successfull"
-elif 
-then
+else
     echo "ERROR: Failed to specify valid environment in github CI."
     exit 1 # terminate and indicate error
 fi
