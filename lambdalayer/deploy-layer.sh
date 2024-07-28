@@ -96,7 +96,7 @@ echo "Updating the ${ENV} lambda layer version for one agent to version ${RELEAS
 echo $DYNATRACE_SECRETS > tmp.json
 
 # Update the secrets manager secret with the new variable
-if [$ENV = 'test'] 
+if [ "$ENV" = 'test' ]
 then
     echo "Deploying selected layers to $ENV"
     # aws secretsmanager put-secret-value --secret-id DynatraceDevVariables --secret-string file://tmp.json > /dev/null
