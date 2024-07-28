@@ -22,9 +22,11 @@ fi
 # List all the lambda layer names in this AWS account and only select the ones with the correct release version
 echo "STATUS: Fetching layer names..."
 
-###BREAKING POINT
-LAYER_NAMES=$(aws lambda list-layers | jq '.Layers[] | .LayerName' -r)
+LAYER_NAMES=$(aws lambda list-layers | jq '.Layers[] | .LayerName' -r) #| grep "$RELEASE_VERSION")
 echo "STATUS: Recovered layer names. $LAYER_NAMES"
+echo "STATUS: Searching for version $RELEASE_VERSION..."
+
+###BREAKING POINT
 LAYER_NAMES=$(echo "$LAYER_NAMES" | grep "$RELEASE_VERSION")
 echo "STATUS: Recovered layer names of version $RELEASE_VERSION"
 
