@@ -92,7 +92,6 @@ do
     then
         DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".PYTHON_LAYER = \"$LAYER_ARN\""`
     else
-    then
         echo "ERROR: Failed to specify valid runtime."
         exit 1 # terminate and indicate error
     fi
