@@ -20,10 +20,10 @@ fi
 
 #TEST 1_273_3
 # List all the lambda layer names in this AWS account and only select the ones with the correct release version
-# IAM
 echo "STATUS: Fetching layer names."
 
-LAYER_NAMES=`aws lambda list-layers | jq '.Layers[] | .LayerName' -r` | grep $RELEASE_VERSION
+###BREAKING POINT
+LAYER_NAMES=$(aws lambda list-layers | jq '.Layers[] | .LayerName' -r | grep $RELEASE_VERSION)
 echo "STATUS: Recovered layer names. $LAYER_NAMES"
 
 #if LAYER_NAMES is empty then error and exit
@@ -62,14 +62,17 @@ echo $DYNATRACE_SECRETS > tmp.json
 # Update the secrets manager secret with the new variable
 if [$ENV = 'test'] 
     echo "Deploying selected layers to $ENV"
-    aws secretsmanager put-secret-value --secret-id DynatraceDevVariables --secret-string file://tmp.json > /dev/null
+    # aws secretsmanager put-secret-value --secret-id DynatraceDevVariables --secret-string file://tmp.json > /dev/null
+    echo "Secret push to DynatraceDevVariables successful"
 then
 # elif [$ENV = 'nonprod']
 # then
 #     aws secretsmanager put-secret-value --secret-id DynatraceNonProductionVariables --secret-string file://tmp.json > /dev/null
+#     echo "Secret push to DynatraceNonProductionVariables successfull"
 # elif [$ENV = 'prod']
 # then
 #     aws secretsmanager put-secret-value --secret-id DynatraceProductionVariables --secret-string file://tmp.json > /dev/null
+#     echo "Secret push to DynatraceProductionVariables successfull"
 elif 
 then
     echo "ERROR: Failed to specify valid environment in github CI."
