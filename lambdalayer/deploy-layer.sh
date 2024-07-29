@@ -18,58 +18,15 @@ else
     exit 1 # terminate and indicate error
 fi
 
-#TEST 1_273_3
+#TEST
 # List all the lambda layer arns in this AWS account and only select the ones with the correct release version
-echo "STATUS: Fetching layer names..."
+# echo "STATUS: Fetching layer arns..."
 
-LAYER_ARNS=$(aws lambda list-layers | jq '.Layers[] | .LayerArn' -r | grep "$RELEASE_VERSION")
+# LAYER_ARNS=$(aws lambda list-layers | jq '.Layers[] | .LayerArn' -r | grep "$RELEASE_VERSION")
 echo "STATUS: Recovered layer arns. $LAYER_ARNS"
 
-### TESTING LAYER_ARNS
-
-has_java=false
-has_nodejs=false
-has_python=false
-layer_count=0
-
-# Check that there are exactly three arns
-# Check for each required runtime
-for arn in $LAYER_ARNS
-do
-    RUNTIME=`echo "$arn" | tr '_' '\n' | tail -n 1`
-    echo "Runtime: $RUNTIME"
-    layer_count=$((layer_count+1))
-
-    if [[ "$RUNTIME" == 'java' ]]
-    then
-        has_java=true
-    elif [[ "$RUNTIME" == 'nodejs' ]]
-    then
-        has_nodejs=true
-    elif [[ "$RUNTIME" == 'python' ]]
-    then
-        has_python=true
-    fi
-done
-
-# Verify all required runtimes are present
-if ! $has_java || ! $has_nodejs || ! $has_python
-then
-    echo "ERROR: The list of ARNs must include one each for Java, Node.js, and Python."
-    exit 1
-else
-    echo "All required ARNs are present."
-fi
-
-# Verify there are exactly three ARNs
-echo "Number of layers found: $layer_count"
-if [ $layer_count != 3 ]
-then
-    echo "ERROR: There must be exactly 3 layers. No more or less."
-    exit 1
-fi
-
 ### RELEASE
+echo "--- Begin Release---"
 
 # Loop through all lambda layer ARNS of release the layer arn for NodeJS, Java, python
 for LAYER_ARN in $LAYER_ARNS
@@ -99,7 +56,7 @@ echo $DYNATRACE_SECRETS > tmp.json
 if [ "$ENV" = 'test' ]
 then
     echo "Deploying selected layers to $ENV"
-    # aws secretsmanager put-secret-value --secret-id DynatraceDevVariables --secret-string file://tmp.json > /dev/null
+    aws secretsmanager put-secret-value --secret-id DynatraceDevVariables --secret-string file://tmp.json > /dev/null
     echo "Secret push to DynatraceDevVariables successful"
 # then
 # elif [$ENV = 'nonprod']

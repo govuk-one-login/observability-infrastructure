@@ -6,7 +6,7 @@ on:
       - 'feature/*'
 
 jobs:
-  dev:
+  dev-deploy:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -27,14 +27,48 @@ jobs:
           TEST_VERSION=$(cat ./lambdalayer/one-agent-version/VERSION)
           echo "Test Version is $TEST_VERSION"
           echo "TEST_VERSION=$TEST_VERSION" >> $GITHUB_OUTPUT
+      - name: Layer Version validity check
+        id: validity-check
+        run: |
+          ./lambdalayer/version-validity-check.sh
+          echo "LAYER_ARNS=$LAYER_ARNS" >> $GITHUB_OUTPUT
       - name: Run Deploy Layer Test Variable
         run: |
-          export ENV=test
-          export RELEASE_VERSION=${{ steps.get_version.outputs.TEST_VERSION }}
           echo "Deploying $RELEASE_VERSION to the $ENV layer."
           ./lambdalayer/deploy-layer.sh
         env:
           AWS_DEFAULT_REGION: eu-west-2
           AWS_REGION: eu-west-2
-          # ENV: test
-          # RELEASE_VERSION: ${{ steps.get_version.outputs.TEST_VERSION }}
+          ENV: test
+          RELEASE_VERSION: ${{ steps.get_version.outputs.TEST_VERSION }}
+          LAYER_ARNS: ${{ steps.validity-check.outputs.LAYER_ARNS }}
+  # prod-validity-check:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Assume AWS Role
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         role-to-assume: ${{ secrets.DT_GH_ACTIONS_PROD_ROLE_ARN }}
+  #         aws-region: eu-west-2
+  #         role-duration-seconds: 1800
+  #     - name: Get Version
+  #       id: get_version
+  #       run: |
+  #         # get the version from ./lambdalayer/one-agent-version/VERSION
+  #         TEST_VERSION=$(cat ./lambdalayer/one-agent-version/VERSION)
+  #         echo "Test Version is $TEST_VERSION"
+  #         echo "TEST_VERSION=$TEST_VERSION" >> $GITHUB_OUTPUT
+  #     - name: Test Layer Version is valid
+  #       run: |
+  #         ./lambdalayer/test-layer.sh
+  #       env:
+  #         AWS_DEFAULT_REGION: eu-west-2
+  #         AWS_REGION: eu-west-2
+  #         ENV: test
+  #         RELEASE_VERSION: ${{ steps.get_version.outputs.TEST_VERSION }}
+
