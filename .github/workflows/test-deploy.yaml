@@ -32,6 +32,11 @@ jobs:
         run: |
           ./lambdalayer/version-validity-check.sh
           echo "LAYER_ARNS=$LAYER_ARNS" >> $GITHUB_OUTPUT
+        env:
+          AWS_DEFAULT_REGION: eu-west-2
+          AWS_REGION: eu-west-2
+          ENV: test
+          RELEASE_VERSION: ${{ steps.get_version.outputs.TEST_VERSION }}
       - name: Run Deploy Layer Test Variable
         run: |
           echo "Deploying $RELEASE_VERSION to the $ENV layer."
