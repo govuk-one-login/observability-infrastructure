@@ -29,7 +29,7 @@ echo "STATUS: Recovered layer arns."
 
 # RELEASE to secretts manager
 echo "---Deployment to version $RELEASE_VERSION---"
-echo "--- Begin Release---"
+echo "--- Begin Release ---"
 
 # Loop through all lambda layer ARNS of release the layer arn for NodeJS, Java, python
 for LAYER_ARN in $LAYER_ARNS
@@ -73,5 +73,7 @@ else
     echo "ERROR: Failed to specify valid environment in github CI."
     exit 1 # terminate and indicate error
 fi
+echo "--- End Release ---"
+
 
 rm -f tmp.json
