@@ -6,7 +6,7 @@ echo "STATUS: Script starting. The release version is $RELEASE_VERSION and the e
 echo "STATUS: Fetching layer arns..."
 
 LAYER_ARNS=$(aws lambda list-layers | jq '.Layers[] | .LayerArn' -r | grep "$RELEASE_VERSION")
-echo "STATUS: Recovered layer arns. $LAYER_ARNS"
+echo "STATUS: Recovered layer arns."
 
 ### TESTING LAYER_ARNS
 
@@ -42,7 +42,7 @@ then
     echo "ERROR: The list of ARNs must include one each for Java, Node.js, and Python."
     exit 1
 else
-    echo "All required ARNs are present."
+    echo "All required Runtimes are present."
 fi
 
 # Verify there are exactly three ARNs
@@ -53,4 +53,5 @@ then
     exit 1
 fi
 
-echo "---Deployment to version $RELEASE_VERSION---"
+echo "STATUS: All tests passed successfully. Version $RELEASE_VERSION is valid in $ENV"
+echo "--- End Testing---"
