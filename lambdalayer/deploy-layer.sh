@@ -35,7 +35,7 @@ echo "--- Begin Release---"
 for LAYER_ARN in $LAYER_ARNS
 do
     # get the runtime of the current layer
-    RUNTIME=`echo "$LAYER_ARN" | tr '_' '\n' | tail -n 1`
+    RUNTIME=`echo "$LAYER_ARN" | tr '_' '\n' | tail -n 1 | cut -d ':' -f 1`
 
     if [ $RUNTIME = 'nodejs' ]
     then
