@@ -24,7 +24,7 @@ fi
 # List all the lambda layer arns in this AWS account and only select the ones with the correct release version
 echo "STATUS: Fetching layer arns..."
 
-LAYER_ARNS=$(aws lambda list-layers | jq '.Layers[] | .LayerArn' -r | grep "$RELEASE_VERSION")
+LAYER_ARNS=$(aws lambda list-layers | jq '.Layers[] | .LatestMatchingVersion[]' -r | grep "$RELEASE_VERSION")
 echo "STATUS: Recovered layer arns."
 
 # RELEASE to secretts manager
