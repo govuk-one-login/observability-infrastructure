@@ -13,6 +13,7 @@ Resources:
             Principal:
               Federated: !Sub "arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com"
             Action:
+              - sts:AssumeRole
               - sts:AssumeRoleWithWebIdentity
             Condition:
               StringLike:
@@ -42,7 +43,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - signer:StartSigningJob
-                Resource: 'arn:aws:signer:eu-west-2:*:/signing-profiles/DynatraceSigner'
+                Resource: !Sub 'arn:aws:signer:eu-west-2:${AWS::AccountId}:/signing-profiles/DynatraceSigner'
               - Effect: Allow
                 Action:
                   - signer:DescribeSigningJob
@@ -52,6 +53,7 @@ Resources:
                   - lambda:GetLayerVersion
                   - lambda:PublishLayerVersion
                   - lambda:AddLayerVersionPermission
+                  - lambda:ListLayers
                 Resource: '*'
               - Effect: Allow
                 Action:
