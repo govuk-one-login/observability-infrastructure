@@ -1,0 +1,77 @@
+name: Testing the release of the lambda Layer
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+
+jobs:
+  dev-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Assume AWS Role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.DT_GH_ACTIONS_DEV_ROLE_ARN }}
+          aws-region: eu-west-2
+          role-duration-seconds: 1800
+      - name: Get Version
+        id: get_version
+        run: |
+          echo "Get the version from ./lambdalayer/one-agent-version/VERSION"
+          TEST_VERSION=$(cat ./lambdalayer/one-agent-version/VERSION)
+          echo "Test Version is $TEST_VERSION"
+          echo "TEST_VERSION=$TEST_VERSION" >> $GITHUB_OUTPUT
+      - name: Layer Version validity check
+        id: validity-check
+        run: |
+          ./lambdalayer/version-validity-check.sh
+        env:
+          AWS_DEFAULT_REGION: eu-west-2
+          AWS_REGION: eu-west-2
+          ENV: test
+          RELEASE_VERSION: ${{ steps.get_version.outputs.TEST_VERSION }}
+      - name: Run Deploy Layer Test Variable
+        run: |
+          echo "Deploying $RELEASE_VERSION to the $ENV layer."
+          ./lambdalayer/deploy-layer.sh
+        env:
+          AWS_DEFAULT_REGION: eu-west-2
+          AWS_REGION: eu-west-2
+          ENV: test
+          RELEASE_VERSION: ${{ steps.get_version.outputs.TEST_VERSION }}
+  prod-validity-check:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Assume AWS Role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.DT_GH_ACTIONS_PROD_ROLE_ARN }}
+          aws-region: eu-west-2
+          role-duration-seconds: 1800
+      - name: Get Version
+        id: get_version
+        run: |
+          # get the version from ./lambdalayer/one-agent-version/VERSION
+          TEST_VERSION=$(cat ./lambdalayer/one-agent-version/VERSION)
+          echo "Test Version is $TEST_VERSION"
+          echo "TEST_VERSION=$TEST_VERSION" >> $GITHUB_OUTPUT
+      - name: Test Layer Version is valid
+        run: |
+          ./lambdalayer/version-validity-check.sh
+        env:
+          AWS_DEFAULT_REGION: eu-west-2
+          AWS_REGION: eu-west-2
+          ENV: prod
+          RELEASE_VERSION: ${{ steps.get_version.outputs.TEST_VERSION }}
+
