@@ -118,7 +118,9 @@ In order to upgrade all lambdas teams will need to rebuild all lambda builds to 
 
 ## Notes for future
 
-Currently we have one version that upgrades all layers:
+1) Add functionality to deploy only the first 3 layers found. Currently the script deploys all of them even if minor versions are found. 
+
+2) Currently we have one version that upgrades all layers:
 
 java
 python
