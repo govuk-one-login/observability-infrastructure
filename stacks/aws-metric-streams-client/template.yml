@@ -137,3 +137,7 @@ Resources:
           IncludeMetrics:
             - MetricName: Latency
               Namespace: AWS/ApiGateway
+            - MetricName: BucketSizeBytes
+              Namespace: AWS/S3
+            - MetricName: NumberOfObjects
+              Namespace: AWS/S3
