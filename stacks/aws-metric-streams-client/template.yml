@@ -134,6 +134,8 @@ Resources:
         - AdditionalStatistics:
             - p95
             - p99
+            - count
+            - average
           IncludeMetrics:
             - MetricName: Latency
               Namespace: AWS/ApiGateway
