@@ -1,0 +1,6 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - cd infrastructure/gitsync-core/step-2
+      - ./deploy.sh GitSyncNotifications eu-west-2

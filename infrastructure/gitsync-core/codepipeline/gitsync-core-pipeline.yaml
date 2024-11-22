@@ -1,0 +1,383 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Default: govuk-one-login
+  GitHubRepoName:
+    Type: String
+    Default: observability-infrastructure
+  GitHubBranch:
+    Type: String
+    Default: main
+  CTEnvironment:
+    Type: String
+    Description: The Control Tower Environment you are deploying into.
+    Default: production
+  WorkingDir:
+    Type: String
+    Description: Working directory for IaC
+    Default: infrastructure/gitsync-core
+  PipelineName:
+    Type: String
+    Default: codepipeline-gitsync-core-pipeline
+  tagEnvironment:
+    Type: String
+    Default: "production"
+  tagOwner:
+    Type: String
+    Default: "di-aws-control-tower"
+  tagService:
+    Type: String
+    Default: "di-aws-control-tower"
+  tagSystem:
+    Type: String
+    Default: "control-tower"
+  tagProduct:
+    Type: String
+    Default: "GOV.UK One Login"
+
+Resources:
+  CodeStarConnection:
+    Type: 'AWS::CodeStarConnections::Connection'
+    Properties:
+      ConnectionName: GDS-GitHub-Connection
+      ProviderType: GitHub
+      Tags:
+        - Key: Environment
+          Value: !Ref tagEnvironment
+        - Key: Owner
+          Value: !Ref tagOwner
+        - Key: Service
+          Value: !Ref tagService
+        - Key: System
+          Value: !Ref tagSystem
+        - Key: Product
+          Value: !Ref tagProduct
+  ######################################################################################################################
+  # CodeBuild role
+  ######################################################################################################################
+  CodeBuildServiceRole:
+    #checkov:skip=CKV_AWS_109
+    #checkov:skip=CKV_AWS_111
+    #checkov:skip=CKV_AWS_110
+    #checkov:skip=CKV_AWS_108
+    #checkov:skip=CKV_AWS_107
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "CodeBuildRole-${GitHubRepoName}"
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  # Permissions for AWS::Events::Rule (CloudWatch Events / EventBridge Rule)
+                  - "events:PutRule"
+                  - "events:DeleteRule"
+                  - "events:DescribeRule"
+                  - "events:PutTargets"
+                  - "events:RemoveTargets"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  # Permissions for AWS::KMS::Key
+                  - "kms:CreateKey"
+                  - "kms:DescribeKey"
+                  - "kms:ScheduleKeyDeletion"
+                  - "kms:CreateAlias"
+                  - "kms:ListKeys"
+                  - "kms:ListAliases"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  # Permissions for AWS::SNS::Topic
+                  - "sns:CreateTopic"
+                  - "sns:DeleteTopic"
+                  - "sns:GetTopicAttributes"
+                  - "sns:SetTopicAttributes"
+                  - "sns:ListTopics"
+                Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  # Permissions for AWS::SNS::TopicPolicy
+                  - "sns:SetTopicAttributes"
+                  - "sns:GetTopicAttributes"
+                Resource: "*"
+              - Resource:
+                  - "*"
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Sid: CodeBuildLogs
+              - Effect: "Allow"
+                Action:
+                  # Permissions for AWS::Chatbot::SlackChannelConfiguration
+                  - "chatbot:CreateSlackChannelConfiguration"
+                  - "chatbot:UpdateSlackChannelConfiguration"
+                  - "chatbot:DescribeSlackChannelConfigurations"
+                  - "chatbot:DeleteSlackChannelConfiguration"
+                Resource: "*"
+                Sid: Chatbot
+              - Effect: "Allow"
+                Action:
+                  # Permissions for AWS::Chatbot::SlackChannelConfiguration
+                  - iam:CreateRole
+                  - iam:PutRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:PassRole
+                  - iam:DeleteRole
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:GetRole
+                  - iam:DeleteRolePolicy
+                  - iam:GetRolePolicy
+                  - iam:TagRole
+                Resource: "*"
+                Sid: IamRoleBuild
+              - Resource: "*"
+                Effect: Allow
+                Action:
+                  - cloudformation:*
+                  - codepipeline:*
+                  - codebuild:*
+                  - codestar-connections:*
+                  - sts:AssumeRole # permission for assuming roles
+                  - codestar:*
+                  - s3:*
+              - Sid: ServiceLinkRoleforRepoLink
+                Effect: Allow
+                Action:
+                  - iam:CreateServiceLinkedRole
+                  - iam:DeleteServiceLinkedRole
+                Resource:
+                  - "*"
+
+
+  ######################################################################################################################
+  # CodePipeline role
+  ######################################################################################################################
+  CodePipelineServiceRole:
+    #checkov:skip=CKV_AWS_111
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "CodePipelineRole-${GitHubRepoName}"
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Resource: "*"
+                Action:
+                  - codestar-connections:UseConnection
+                Effect: Allow
+              - Resource:
+                  - !GetAtt Step1.Arn
+                  - !GetAtt Step2.Arn
+                  - !GetAtt Step3.Arn
+                Action:
+                  - codebuild:StopBuild
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                Effect: Allow
+        - PolicyName: Archive
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Resource: !Sub ${ArtifactBucket.Arn}/*
+                Effect: Allow
+                Action:
+                  - s3:*
+
+  ######################################################################################################################
+  # S3 artifact bucket
+  ######################################################################################################################
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${GitHubRepoName}-pipeline-artifactbucket-${CTEnvironment}'
+      VersioningConfiguration:
+        Status: Enabled
+      # BucketEncryption:
+      #   ServerSideEncryptionConfiguration:
+      #     - ServerSideEncryptionByDefault:
+      #         SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpiryRule
+            Status: Enabled
+            ExpirationInDays: 90
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ######################################################################################################################
+  # CodeBuild
+  ######################################################################################################################
+  Step1:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub infrastructure/gitsync-core/step-1/env/${CTEnvironment}/build-spec.yaml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+        Type: LINUX_CONTAINER
+      Name: 'gitsync-core-pipeline-step-1'
+      ServiceRole: !Ref CodeBuildServiceRole
+
+  Step2:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub infrastructure/gitsync-core/step-3/env/${CTEnvironment}/build-spec.yaml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+        Type: LINUX_CONTAINER
+      Name: 'gitsync-core-pipeline-step-2'
+      ServiceRole: !Ref CodeBuildServiceRole
+
+  Step3:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub infrastructure/gitsync-core/step-3/env/${CTEnvironment}/build-spec.yaml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+        Type: LINUX_CONTAINER
+      Name: 'gitsync-core-pipeline-step-4'
+      ServiceRole: !Ref CodeBuildServiceRole
+
+  #####################################################################################################################
+  # CodePipeline
+  #####################################################################################################################
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      PipelineType: V2
+      ExecutionMode: PARALLEL
+      Name: !Ref PipelineName
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      Triggers:
+        - ProviderType: CodeStarSourceConnection
+          GitConfiguration:
+            SourceActionName: "Source"
+            Push:
+              - Branches:
+                  Includes:
+                    - !Ref GitHubBranch
+                FilePaths:
+                  Includes:
+                    - !Sub "${WorkingDir}"
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              # https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-CodestarConnectionSource.html#action-reference-CodestarConnectionSource-type
+              ActionTypeId:
+                Category: Source
+                Owner: AWS                
+                Provider: CodeStarSourceConnection
+                Version: 1
+              OutputArtifacts:
+                - Name: SourceCode
+              Configuration:
+                FullRepositoryId: !Sub "${GitHubOwner}/${GitHubRepoName}"                
+                BranchName: !Ref GitHubBranch
+                ConnectionArn: !GetAtt CodeStarConnection.ConnectionArn
+                # ConnectionArn: !Ref ConnectionArn
+                OutputArtifactFormat: CODE_ZIP # CODEBUILD_CLONE_REF or CODE_ZIP
+        - Name: Deploy
+          Actions:
+            - Name: Step-1
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: "1"
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref Step1
+              InputArtifacts:
+                - Name: SourceCode
+              RunOrder: 1
+            - Name: Approve-Step-2
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: "1"
+              RunOrder: 2
+            - Name: Step-2
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: "1"
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref Step2
+              InputArtifacts:
+                - Name: SourceCode
+              RunOrder: 3
+            - Name: Approve-Step-3-Step-4
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: "1"
+              RunOrder: 4
+            - Name: Step-3
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: "1"
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref Step3
+              InputArtifacts:
+                - Name: SourceCode
+              RunOrder: 5
+
+Outputs:
+  ConnectionArn:
+    Description: "The ARN of the codestar connection"
+    Value: !GetAtt CodeStarConnection.ConnectionArn
+    Export:
+      Name: "ConnectionArn"

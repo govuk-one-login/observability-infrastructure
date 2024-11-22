@@ -1,0 +1,179 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+ This stack contains resources required to track events associated with the 
+ AWSGitSync user in cloudtrail & publish them to SNS.
+
+Parameters:
+  GitHubRepository:
+    Description: Full github org and repository string.
+    Type: String
+    Default: govuk-one-login/ct-firewall-manager-config
+
+Resources:
+  SuccessEventsRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventBusName: default
+      EventPattern:
+        source:
+          - 'aws.codeconnections'
+        detail-type:
+          - 'AWS API Call via CloudTrail'
+        detail:
+          eventName:
+            - 'UseConnection'
+          eventSource:
+            - codeconnections.amazonaws.com
+          requestParameters:
+            parameters:
+              fullRepositoryId:
+                - !Ref GitHubRepository
+              state:
+                - SUCCESS
+      Targets:
+        - Arn: !Ref SNSTopic
+          Id: SnsSlackTarget
+          InputTransformer:
+            InputPathsMap:
+              "region": "$.detail.awsRegion"
+              "accountId": "$.detail.recipientAccountId"
+              "state" : "$.detail.requestParameters.parameters.state"
+              "fullRepositoryId" : "$.detail.requestParameters.parameters.fullRepositoryId"
+              "commitId" : "$.detail.requestParameters.parameters.commitId"
+              "targetUrl" : "$.detail.requestParameters.parameters.targetUrl"
+              "description" : "$.detail.requestParameters.parameters.description"
+              "context" : "$.detail.requestParameters.parameters.context"
+              "eventTime" : "$.detail.eventTime"
+            InputTemplate: |
+                {
+                  "version": "1.0",
+                  "source": "custom",
+                  "content": {
+                    "title": ":sparkle: GitSync Update Successful | <region> | Account: <accountId>",
+                    "description": "\n<description>\n\n*Event Time*: <eventTime>\n*State*: <state>\n\n*Repository*: <fullRepositoryId>\n*Commit Ref*: https://github.com/<fullRepositoryId>/commit/<commitId>\n\n*Stack*: <context>\n*Stack URL*: <targetUrl>"
+                  }
+                }
+
+  FailedEventsRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventBusName: default
+      EventPattern:
+        source:
+          - 'aws.codeconnections'
+        detail-type:
+          - 'AWS API Call via CloudTrail'
+        detail:
+          eventName:
+            - 'UseConnection'
+          eventSource:
+            - codeconnections.amazonaws.com
+          requestParameters:
+            parameters:
+              fullRepositoryId:
+                - !Ref GitHubRepository
+              state:
+                - FAILURE
+      Targets:
+        - Arn: !Ref SNSTopic
+          Id: SnsSlackTarget
+          InputTransformer:
+            InputPathsMap:
+              "region": "$.detail.awsRegion"
+              "accountId": "$.detail.recipientAccountId"
+              "state" : "$.detail.requestParameters.parameters.state"
+              "fullRepositoryId" : "$.detail.requestParameters.parameters.fullRepositoryId"
+              "commitId" : "$.detail.requestParameters.parameters.commitId"
+              "targetUrl" : "$.detail.requestParameters.parameters.targetUrl"
+              "description" : "$.detail.requestParameters.parameters.description"
+              "context" : "$.detail.requestParameters.parameters.context"
+              "eventTime" : "$.detail.eventTime"
+            InputTemplate: |
+                {
+                  "version": "1.0",
+                  "source": "custom",
+                  "content": {
+                    "title": ":x: GitSync Update Failed | <region> | Account: <accountId>",
+                    "description": "\n<description>\n\n*Event Time*: <eventTime>\n*State*: <state>\n\n*Repository*: <fullRepositoryId>\n*Commit Ref*: https://github.com/<fullRepositoryId>/commit/<commitId>\n\n*Stack*: <context>\n*Stack URL*: <targetUrl>"
+                  }
+                }
+
+  SNSEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      PendingWindowInDays: 20
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: RootAllowKeyManagement
+            Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - kms:*
+            Resource: '*'
+          - Sid: PipelineKeyManagement
+            Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/CodeBuildRole-ct-firewall-manager-config"
+            Action:
+              - kms:*
+            Resource: '*'
+          - Sid: EventsAllowDecrypt
+            Effect: Allow
+            Principal:
+              Service: "events.amazonaws.com"
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey*
+            Resource: '*'
+
+  SNSEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties: 
+      AliasName: 
+        Fn::Sub: 'alias/${AWS::StackName}'
+      TargetKeyId: !Ref SNSEncryptionKey
+
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub ${AWS::StackName}-Topic
+      FifoTopic: false
+      TopicName: !Sub ${AWS::StackName}-Topic
+      KmsMasterKeyId: !Ref SNSEncryptionKeyAlias
+
+  SNSAccessPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: 
+          Fn::Sub: ${AWS::StackName}-AccessPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: PublishNotificationEvents
+          Effect: Allow
+          Principal:
+              Service:
+                - events.amazonaws.com
+          Action: sns:Publish
+          Resource: "*"
+        - Sid: ReceiveNotificationEvents
+          Effect: Allow
+          Principal:
+              Service:
+                - chatbot.amazonaws.com
+          Action: sns:Receive
+          Resource: "*"
+      Topics:
+      - !Ref SNSTopic
+
+Outputs:
+  BuildNotificationsEventsSnsTopic:
+    Description: The ARN of the SNS topic used to notify when a create account event occurred
+    Value: !Ref SNSTopic
+    Export:
+      Name: !Sub "${AWS::StackName}-${AWS::Region}-Topic"

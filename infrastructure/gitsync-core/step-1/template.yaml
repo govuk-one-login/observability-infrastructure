@@ -1,0 +1,262 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Step 1: Deploy step-1 template in eu-west-2 which includes all the gitsync configuration, 
+          repo links and IAM roles and s3 buckets needed for FMS.
+
+Parameters:
+  BranchName:
+    Type: String
+    Default: main
+    Description: Name of the GitHub branch to connect to
+
+  RepositoryName:
+    Type: String
+    Default: "ct-firewall-manager-config"
+    Description: Name of the repository to connect to in GitHub
+
+  OwnerId:
+    Type: String
+    Default: "govuk-one-login"
+    Description: The name of the repository owner
+
+  OrganizationId:
+    Type: String
+    Description: The AWS Organization ID
+    Default: "r-wbao"
+
+  CTEnvironment:
+    Type: String
+    Description: The Control Tower Environment you are deploying into.
+    Default: sandbox
+
+  CodeStarConnection:
+    Type: String
+    Default: "arn:aws:codestar-connections:eu-west-2:715841343135:connection/edf174ea-8731-4148-af8c-c40682bfed19"
+    Description: The approved codestar connection.
+
+  CustomStackName:
+    Type: String
+    Default: "FMS-Custom-Policies"
+    Description: The name of the cloudformation stack for custom policies.
+
+  GenericStackName:
+    Type: String
+    Default: "FMS-Generic-Policies"
+    Description: The name of the cloudformation stack for custom policies.
+
+Resources:
+
+######################################################################################################################
+# Shared Infrastructure for Regional and Global
+######################################################################################################################
+  GitSyncRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub FMSGitSyncRole-${CTEnvironment}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.sync.codeconnections.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: !Sub Cloudformation-${CTEnvironment}
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:DeleteChangeSet"
+                  - "cloudformation:DescribeChangeSet"
+                  - "cloudformation:DescribeStackEvents"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:ExecuteChangeSet"
+                  - "cloudformation:GetTemplate"
+                  - "cloudformation:ListChangeSets"
+                  - "cloudformation:ListStacks"
+                  - "cloudformation:ValidateTemplate"
+                Resource: '*'
+        - PolicyName: !Sub Managed-Rules-${CTEnvironment}
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "Events:PutRule"
+                  - "Events:PutTargets"
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    "events:ManagedBy": "cloudformation.sync.codeconnections.amazonaws.com"
+        - PolicyName: !Sub Describe-Rules-${CTEnvironment}
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "Events:DescribeRule"
+                Resource: '*'
+        - PolicyName: !Sub FMS-${CTEnvironment}
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "wafv2:*"
+                  - "fms:*"
+                  - "kms:*"
+                  - "sns:*"
+                  - "s3:*"
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                - iam:CreateRole
+                - iam:DeleteRole
+                - iam:PutRolePolicy
+                - iam:TagRole
+                - iam:DeleteRolePolicy
+                - iam:GetRole
+                - iam:CreateServiceLinkedRole
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                - codebuild:*
+                - codeconnections:*
+                - codepipeline:*
+                - codestar-connections:*
+                - codestar-notifications:*
+                - chatbot:*
+                Resource: "*"
+        - PolicyName: !Sub FMS-Cloudformation-${CTEnvironment}
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - cloudformation:*
+              - iam:CreateRole
+              - iam:PassRole
+              - kms:CreateAlias
+              Resource:
+              - arn:aws:cloudformation:*:715841343135:type/resource/*
+              - arn:aws:iam::715841343135:role/*
+              - arn:aws:kms:*:715841343135:key/*
+              - arn:aws:kms:*:715841343135:alias/*
+            - Effect: Allow
+              Action:
+              - cloudformation:CreateUploadBucket
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:CreateChangeSet
+              - cloudformation:RegisterType
+              - cloudformation:SetTypeDefaultVersion
+              - cloudformation:ActivateType
+              - cloudformation:RegisterPublisher
+              - cloudformation:DeactivateOrganizationsAccess
+              - cloudformation:PublishType
+              - cloudformation:DeactivateType
+              - cloudformation:SetTypeConfiguration
+              - cloudformation:DeregisterType
+              - cloudformation:CreateGeneratedTemplate
+              - sso-oauth:*
+              - cloudformation:StartResourceScan
+              - cloudformation:UpdateGeneratedTemplate
+              - cloudformation:ActivateOrganizationsAccess
+              - kms:CreateKey
+              - cloudformation:DeleteGeneratedTemplate
+              - cloudformation:CreateStackSet
+              - cloudformation:TestType
+              - config:PutDeliveryChannel
+              Resource: "*"
+      Tags: 
+        - Key: RepositoryName
+          Value: !Sub ${RepositoryName}
+        - Key: Environment
+          Value: !Sub ${CTEnvironment}
+      
+  LoggingConfigBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "aws-waf-logs-di-ct-security-tooling-new-${CTEnvironment}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpiryRule
+            Status: Enabled
+            ExpirationInDays: 90
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+        # NotificationConfiguration:
+        #   QueueConfigurations:
+        #     - Event: "s3:ObjectCreated:*"
+        #       Queue: arn:aws:sqs:eu-west-2:885513274347:cyber-security-s3-to-splunk-prodpython
+
+######################################################################################################################
+# Regional Infrastructure
+######################################################################################################################
+  GitHubRepoLink:
+    Type: AWS::CodeStarConnections::RepositoryLink
+    Properties:
+      ConnectionArn: !Ref CodeStarConnection
+      RepositoryName: !Ref RepositoryName
+      OwnerId: !Ref OwnerId
+      Tags:
+           - Key: Name
+             Value: !Sub "${RepositoryName}-repo-link"
+
+  GitSyncConfigurationRegionalCustom:
+    Type: AWS::CodeStarConnections::SyncConfiguration
+    Properties:
+      Branch: !Ref BranchName
+      ConfigFile: !Sub "infrastructure/${CTEnvironment}/regional/custom/gitsync.yaml"
+      RepositoryLinkId: !GetAtt GitHubRepoLink.RepositoryLinkId
+      ResourceName: !Ref CustomStackName
+      RoleArn: !GetAtt GitSyncRole.Arn
+      SyncType: "CFN_STACK_SYNC"
+      TriggerResourceUpdateOn: "FILE_CHANGE"
+      PublishDeploymentStatus: "ENABLED" 
+
+  GitSyncConfigurationGeneric:
+    Type: AWS::CodeStarConnections::SyncConfiguration
+    Properties:
+      Branch: !Ref BranchName
+      ConfigFile: !Sub "infrastructure/${CTEnvironment}/regional/generic/gitsync.yaml"
+      RepositoryLinkId: !GetAtt GitHubRepoLink.RepositoryLinkId
+      ResourceName: !Ref GenericStackName
+      RoleArn: !GetAtt GitSyncRole.Arn
+      SyncType: "CFN_STACK_SYNC"
+      TriggerResourceUpdateOn: "FILE_CHANGE"
+      PublishDeploymentStatus: "ENABLED" 
+
+Outputs:
+  IAMRoleARN:
+    Description: "The ARN of the IAM Role"
+    Value: !GetAtt GitSyncRole.Arn
+    Export:
+      Name: "IAMRoleARN"
+  RepoLinkID:
+    Description: "The id of the repo link"
+    Value: !GetAtt GitHubRepoLink.RepositoryLinkId
+    Export:
+      Name: "RepoLinkID"

@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+ This stack contains resources required to send messages from build notification
+ topics to slack.
+
+Parameters:
+  SlackChannelId:
+    Description: The Slack channel ID of the destination for messages.
+    Type: String
+  SlackWorkspaceId:
+    Description:  The Slack workspace ID associated with AWS Chatbot.
+    Type: String
+  EventTopicsList:
+    Description: A comma delimited list of SNS topics to forward messages from.
+    Type: CommaDelimitedList
+
+Resources:
+  ChatbotRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: chatbot.amazonaws.com
+          Action:
+          - sts:AssumeRole
+
+  SlackChannelConfiguration:
+      Type: AWS::Chatbot::SlackChannelConfiguration
+      Properties:
+        ConfigurationName:
+          Fn::Sub: ${AWS::StackName}-SlackChannelConfiguration
+        IamRoleArn:
+          Fn::GetAtt:
+          - ChatbotRole
+          - Arn
+        SlackChannelId: !Ref SlackChannelId
+        SlackWorkspaceId: !Ref SlackWorkspaceId
+        SnsTopicArns: !Ref EventTopicsList
