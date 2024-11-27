@@ -20,7 +20,7 @@ You need to create an empty stack for gitsync to sync changes too. Follow the co
 Deploy step-1 template in eu-west-2 which includes all the gitsync configuration, repo links and IAM roles and s3 buckets needed for FMS.
 
 ```bash
-  ./step-1/deploy.sh Gitsync-core sandbox r-wbao
+  ./step-1/deploy.sh Gitsync-core non-prod r-wbao
 ```
 
 ```bash
@@ -52,10 +52,6 @@ Use the ```deploy.sh``` script in ```Step-4/slack-integration``` to deploy slack
 Environment
 
     Must be either 'sandbox' or 'production' control tower accounts.
-
-OrganizationID
-
-    Must be the ID of the root organization.
 
 SLACKCHANNELID
 

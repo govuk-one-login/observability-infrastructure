@@ -20,19 +20,14 @@ Parameters:
     Default: "govuk-one-login"
     Description: The name of the repository owner
 
-  OrganizationId:
-    Type: String
-    Description: The AWS Organization ID
-    Default: "r-wbao"
-
   CTEnvironment:
     Type: String
     Description: The Control Tower Environment you are deploying into.
-    Default: sandbox
+    Default: nonprod
 
   CodeStarConnection:
     Type: String
-    Default: "arn:aws:codestar-connections:eu-west-2:715841343135:connection/edf174ea-8731-4148-af8c-c40682bfed19"
+    Default: ""
     Description: The approved codestar connection.
 
   CustomStackName:

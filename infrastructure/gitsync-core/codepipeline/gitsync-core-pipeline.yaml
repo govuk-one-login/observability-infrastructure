@@ -13,7 +13,7 @@ Parameters:
   CTEnvironment:
     Type: String
     Description: The Control Tower Environment you are deploying into.
-    Default: production
+    Default: non-production
   WorkingDir:
     Type: String
     Description: Working directory for IaC
@@ -21,39 +21,11 @@ Parameters:
   PipelineName:
     Type: String
     Default: codepipeline-gitsync-core-pipeline
-  tagEnvironment:
+  ConnectionArn:
     Type: String
-    Default: "production"
-  tagOwner:
-    Type: String
-    Default: "di-aws-control-tower"
-  tagService:
-    Type: String
-    Default: "di-aws-control-tower"
-  tagSystem:
-    Type: String
-    Default: "control-tower"
-  tagProduct:
-    Type: String
-    Default: "GOV.UK One Login"
+    Default: ""
 
 Resources:
-  CodeStarConnection:
-    Type: 'AWS::CodeStarConnections::Connection'
-    Properties:
-      ConnectionName: GDS-GitHub-Connection
-      ProviderType: GitHub
-      Tags:
-        - Key: Environment
-          Value: !Ref tagEnvironment
-        - Key: Owner
-          Value: !Ref tagOwner
-        - Key: Service
-          Value: !Ref tagService
-        - Key: System
-          Value: !Ref tagSystem
-        - Key: Product
-          Value: !Ref tagProduct
   ######################################################################################################################
   # CodeBuild role
   ######################################################################################################################
@@ -322,8 +294,8 @@ Resources:
               Configuration:
                 FullRepositoryId: !Sub "${GitHubOwner}/${GitHubRepoName}"                
                 BranchName: !Ref GitHubBranch
-                ConnectionArn: !GetAtt CodeStarConnection.ConnectionArn
-                # ConnectionArn: !Ref ConnectionArn
+                # ConnectionArn: !GetAtt CodeStarConnection.ConnectionArn
+                ConnectionArn: !Ref ConnectionArn
                 OutputArtifactFormat: CODE_ZIP # CODEBUILD_CLONE_REF or CODE_ZIP
         - Name: Deploy
           Actions:
@@ -374,10 +346,3 @@ Resources:
               InputArtifacts:
                 - Name: SourceCode
               RunOrder: 5
-
-Outputs:
-  ConnectionArn:
-    Description: "The ARN of the codestar connection"
-    Value: !GetAtt CodeStarConnection.ConnectionArn
-    Export:
-      Name: "ConnectionArn"

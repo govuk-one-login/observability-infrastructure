@@ -4,10 +4,12 @@ Description: |
  AWSGitSync user in cloudtrail & publish them to SNS.
 
 Parameters:
-  GitHubRepository:
-    Description: Full github org and repository string.
+  GitHubOwner:
     Type: String
-    Default: govuk-one-login/ct-firewall-manager-config
+    Default: govuk-one-login
+  GitHubRepoName:
+    Type: String
+    Default: observability-infrastructure
 
 Resources:
   SuccessEventsRule:
@@ -27,7 +29,7 @@ Resources:
           requestParameters:
             parameters:
               fullRepositoryId:
-                - !Ref GitHubRepository
+                - !Sub "${GitHubOwner}/${GitHubRepoName}"
               state:
                 - SUCCESS
       Targets:
@@ -71,7 +73,7 @@ Resources:
           requestParameters:
             parameters:
               fullRepositoryId:
-                - !Ref GitHubRepository
+                - !Sub "${GitHubOwner}/${GitHubRepoName}"
               state:
                 - FAILURE
       Targets:
@@ -118,7 +120,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS: 
-                - !Sub "arn:aws:iam::${AWS::AccountId}:role/CodeBuildRole-ct-firewall-manager-config"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/CodeBuildRole-${GitHubRepoName}"
             Action:
               - kms:*
             Resource: '*'

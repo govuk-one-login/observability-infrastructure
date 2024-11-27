@@ -18,16 +18,6 @@ TOPIC_ARN_EU_WEST_2=$(
   )
 echo "INFO: successfully collected topic ARN from eu-west-2: ${TOPIC_ARN_EU_WEST_2}"
 
-echo "INFO: collecting topic ARN from: us-east-1"
-TOPIC_ARN_US_EAST_1=$(
-  aws cloudformation describe-stacks \
-  --region us-east-1 \
-  --stack-name ${STACK_NAME}-Event-Rules \
-  --query 'Stacks[0].Outputs[?OutputKey==`BuildNotificationsEventsSnsTopic`].OutputValue' \
-  --output text
-  )
-echo "INFO: successfully collected topic ARN from us-east-1: ${TOPIC_ARN_US_EAST_1}"
-
 echo "INFO: deploying slack integration stack"
 aws cloudformation deploy \
     --stack-name ${STACK_NAME}-Slack-Integration \

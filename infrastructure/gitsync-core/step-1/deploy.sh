@@ -3,10 +3,9 @@
 
 STACK_NAME=$1
 ENVIRONMENT=$2
-ORGANIZATIONID=$3
-CONNECTIONNAME=$4
+CONNECTIONNAME=$3
 REGION="eu-west-2"
-BRANCHNAME=$5
+BRANCHNAME=$4
 
 echo "INFO: collecting connection ARN"
 CONNECTIONARN=$(
@@ -24,7 +23,6 @@ aws cloudformation deploy \
   --template-file template.yaml \
   --capabilities CAPABILITY_NAMED_IAM \
   --parameter-overrides \
-    OrganizationId=${ORGANIZATIONID} \
     CTEnvironment=${ENVIRONMENT} \
     CodeStarConnection=${CONNECTIONARN} \
     BranchName=${BRANCHNAME}
