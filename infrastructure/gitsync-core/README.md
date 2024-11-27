@@ -20,38 +20,28 @@ You need to create an empty stack for gitsync to sync changes too. Follow the co
 Deploy step-1 template in eu-west-2 which includes all the gitsync configuration, repo links and IAM roles and s3 buckets needed for FMS.
 
 ```bash
-  ./step-1/deploy.sh Gitsync-core non-prod r-wbao
+  ./step-1/deploy.sh Gitsync-core *ENVIRONMENT* GDS-GitHub-Connection main
 ```
+
+## Step 2: Deploying slack notification event rules in both regions
+Use the ```deploy.sh``` script in ```Step-2/notification-rules``` to iteratively deploy event rule resources to multiple regions.
 
 ```bash
-  ./step-1/deploy.sh Gitsync-core govenance r-wbao
-```
-## Step 2: us-east-1 Global sync config
-
-Deploy step-2 template in us-east-1 which includes all the gitsync configuration for global pipelines.
-
-```bash
-  ./step-2/deploy.sh Gitsync-core *ENVIRONMENT* 
+  ./Step-2/deploy.sh GitSyncNotifications eu-west-2
 ```
 
-## Step 3: Deploying slack notification event rules in both regions
-Use the ```deploy.sh``` script in ```Step-3/notification-rules``` to iteratively deploy event rule resources to multiple regions.
-
-```bash
-  ./Step-3/deploy.sh GitSyncNotifications
-```
-### Step 4 Deploying slack integration
+### Step 3 Deploying slack integration
 Use the ```deploy.sh``` script in ```Step-4/slack-integration``` to deploy slack integration resources.
 
 ```bash
-  ./Step-4/deploy.sh GitSyncNotifications *SLACKCHANNELID* *SLACKWORKSPACEID*
+  ./Step-3/deploy.sh GitSyncNotifications *SLACKCHANNELID* *SLACKWORKSPACEID*
 ```
 
 ## Parameters
 
 Environment
 
-    Must be either 'sandbox' or 'production' control tower accounts.
+    The deployment environment.
 
 SLACKCHANNELID
 
