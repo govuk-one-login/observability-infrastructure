@@ -17,7 +17,6 @@ Parameters:
     AllowedValues: [true, false]
     Default: true
 
-
 Resources:
   FirehoseMetricStreams:
     Type: AWS::KinesisFirehose::DeliveryStream
@@ -137,12 +136,3 @@ Resources:
           IncludeMetrics:
             - MetricName: Latency
               Namespace: AWS/ApiGateway
-              # this metric may be sent anyway because it only sends additional stats eg:p95
-        - AdditionalStatistics:
-            - p95
-            - p99
-          IncludeMetrics:
-            - MetricName: BucketSizeBytes
-              Namespace: AWS/S3
-            - MetricName: NumberOfObjects
-              Namespace: AWS/S3
