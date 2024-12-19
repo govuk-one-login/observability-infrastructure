@@ -6,18 +6,18 @@ Parameters:
     Default: govuk-one-login
   GitHubRepoName:
     Type: String
-    Default: observability-infrastructure
+    Default: "observability-infrastructure"
   GitHubBranch:
     Type: String
     Default: main
   CTEnvironment:
     Type: String
     Description: The Control Tower Environment you are deploying into.
-    Default: non-production
+    Default: "non-production"
   WorkingDir:
     Type: String
     Description: Working directory for IaC
-    Default: infrastructure/gitsync-core
+    Default: "infrastructure/gitsync-core/non-production"
   PipelineName:
     Type: String
     Default: codepipeline-gitsync-core-pipeline
@@ -186,7 +186,7 @@ Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${GitHubRepoName}-pipeline-artifactbucket-${CTEnvironment}'
+      BucketName: !Sub '${GitHubRepoName}-pipeline-${CTEnvironment}'
       VersioningConfiguration:
         Status: Enabled
       # BucketEncryption:

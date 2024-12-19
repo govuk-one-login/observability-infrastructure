@@ -12,7 +12,7 @@ Parameters:
 
   RepositoryName:
     Type: String
-    Default: "ct-firewall-manager-config"
+    Default: "repo-name"
     Description: Name of the repository to connect to in GitHub
 
   OwnerId:
@@ -23,22 +23,12 @@ Parameters:
   CTEnvironment:
     Type: String
     Description: The Control Tower Environment you are deploying into.
-    Default: nonprod
+    Default: "default-env"
 
   CodeStarConnection:
     Type: String
-    Default: ""
-    Description: The approved codestar connection.
-
-  CustomStackName:
-    Type: String
-    Default: "FMS-Custom-Policies"
-    Description: The name of the cloudformation stack for custom policies.
-
-  GenericStackName:
-    Type: String
-    Default: "FMS-Generic-Policies"
-    Description: The name of the cloudformation stack for custom policies.
+    Default: "arn:aws:ec2:us-west-1:123456789012:instance/i-1234567890abcdef0" #dummy arn to be replaced by build spec env vars
+    Description: The approved codestar connection name.
 
 Resources:
 
@@ -192,29 +182,7 @@ Resources:
            - Key: Name
              Value: !Sub "${RepositoryName}-repo-link"
 
-  GitSyncConfigurationRegionalCustom:
-    Type: AWS::CodeStarConnections::SyncConfiguration
-    Properties:
-      Branch: !Ref BranchName
-      ConfigFile: !Sub "infrastructure/${CTEnvironment}/regional/custom/gitsync.yaml"
-      RepositoryLinkId: !GetAtt GitHubRepoLink.RepositoryLinkId
-      ResourceName: !Ref CustomStackName
-      RoleArn: !GetAtt GitSyncRole.Arn
-      SyncType: "CFN_STACK_SYNC"
-      TriggerResourceUpdateOn: "FILE_CHANGE"
-      PublishDeploymentStatus: "ENABLED" 
 
-  GitSyncConfigurationGeneric:
-    Type: AWS::CodeStarConnections::SyncConfiguration
-    Properties:
-      Branch: !Ref BranchName
-      ConfigFile: !Sub "infrastructure/${CTEnvironment}/regional/generic/gitsync.yaml"
-      RepositoryLinkId: !GetAtt GitHubRepoLink.RepositoryLinkId
-      ResourceName: !Ref GenericStackName
-      RoleArn: !GetAtt GitSyncRole.Arn
-      SyncType: "CFN_STACK_SYNC"
-      TriggerResourceUpdateOn: "FILE_CHANGE"
-      PublishDeploymentStatus: "ENABLED" 
 
 Outputs:
   IAMRoleARN:

@@ -4,6 +4,7 @@
 
 STACK_NAME=$1
 REGION=$2
+REPONAME=$3
 
 echo "INFO: executing cloudformation deploy for region: $region"
 aws cloudformation deploy \
@@ -11,6 +12,8 @@ aws cloudformation deploy \
   --template-file notification-rules.yaml \
   --stack-name $STACK_NAME-Event-Rules \
   --capabilities CAPABILITY_IAM
+  --parameter-overrides
+    GitHubRepoName=${REPONAME}
 
 
 echo "STATUS: Stack deploy complete."

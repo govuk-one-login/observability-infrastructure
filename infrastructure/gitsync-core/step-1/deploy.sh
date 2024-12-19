@@ -6,6 +6,7 @@ ENVIRONMENT=$2
 CONNECTIONNAME=$3
 REGION="eu-west-2"
 BRANCHNAME=$4
+REPONAME=$5
 
 echo "INFO: collecting connection ARN"
 CONNECTIONARN=$(
@@ -25,7 +26,8 @@ aws cloudformation deploy \
   --parameter-overrides \
     CTEnvironment=${ENVIRONMENT} \
     CodeStarConnection=${CONNECTIONARN} \
-    BranchName=${BRANCHNAME}
+    BranchName=${BRANCHNAME} \
+    RepositoryName]${REPONAME}
 
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."

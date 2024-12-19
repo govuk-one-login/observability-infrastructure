@@ -7,9 +7,10 @@ Parameters:
   GitHubOwner:
     Type: String
     Default: govuk-one-login
+    
   GitHubRepoName:
     Type: String
-    Default: observability-infrastructure
+    Default: "repo-name"
 
 Resources:
   SuccessEventsRule:

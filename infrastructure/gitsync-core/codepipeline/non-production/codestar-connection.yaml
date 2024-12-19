@@ -9,7 +9,7 @@ Parameters:
     Default: "fog"
   tagService:
     Type: String
-    Default: "observability-infrastructure"
+    Default: "aws-metric-streams-client"
   tagSystem:
     Type: String
     Default: "fog"
