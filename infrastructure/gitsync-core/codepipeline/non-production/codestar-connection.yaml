@@ -21,7 +21,7 @@ Resources:
   CodeStarConnection:
     Type: 'AWS::CodeStarConnections::Connection'
     Properties:
-      ConnectionName: GDS-GitHub-Connection
+      ConnectionName: GDS-GitHub-Connection-Gitsync
       ProviderType: GitHub
       Tags:
         - Key: Environment
