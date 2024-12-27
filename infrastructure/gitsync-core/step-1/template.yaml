@@ -1,8 +1,7 @@
 AWSTemplateFormatVersion : '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Step 1: Deploy step-1 template in eu-west-2 which includes all the gitsync configuration, 
-          repo links and IAM roles and s3 buckets needed for FMS.
+  Step 1: Deploy step-1 template in eu-west-2 which includes all the gitsync configuration.
 
 Parameters:
   BranchName:
