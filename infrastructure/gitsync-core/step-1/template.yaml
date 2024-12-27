@@ -182,7 +182,17 @@ Resources:
            - Key: Name
              Value: !Sub "${RepositoryName}-repo-link"
 
-
+  GitSyncConfiguration:
+    Type: AWS::CodeStarConnections::SyncConfiguration
+    Properties:
+      Branch: !Ref BranchName
+      ConfigFile: !Sub "infrastructure/${CTEnvironment}/aws-metric-streams-client/gitsync.yaml"
+      RepositoryLinkId: !GetAtt GitHubRepoLink.RepositoryLinkId
+      ResourceName: "aws-metric-streams-client"
+      RoleArn: !GetAtt GitSyncRole.Arn
+      SyncType: "CFN_STACK_SYNC"
+      TriggerResourceUpdateOn: "FILE_CHANGE"
+      PublishDeploymentStatus: "ENABLED" 
 
 Outputs:
   IAMRoleARN:
