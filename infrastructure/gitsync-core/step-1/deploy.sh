@@ -27,7 +27,7 @@ aws cloudformation deploy \
     CTEnvironment=${ENVIRONMENT} \
     CodeStarConnection=${CONNECTIONARN} \
     BranchName=${BRANCHNAME} \
-    RepositoryName]${REPONAME}
+    RepositoryName=${REPONAME}
 
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."
