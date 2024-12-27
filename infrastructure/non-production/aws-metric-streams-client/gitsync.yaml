@@ -1,0 +1,3 @@
+template-file-path: infrastructure/non-production/aws-metric-streams-client/template.yaml
+parameters: {}
+tags: {}

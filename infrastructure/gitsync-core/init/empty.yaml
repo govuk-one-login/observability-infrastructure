@@ -1,0 +1,3 @@
+Resources:
+  NullResource:
+    Type: AWS::CloudFormation::WaitConditionHandle

@@ -17,7 +17,6 @@ Parameters:
     AllowedValues: [true, false]
     Default: true
 
-
 Resources:
   FirehoseMetricStreams:
     Type: AWS::KinesisFirehose::DeliveryStream
