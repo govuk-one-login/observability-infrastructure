@@ -13,11 +13,11 @@ Parameters:
   CTEnvironment:
     Type: String
     Description: The Control Tower Environment you are deploying into.
-    Default: "non-production"
+    Default: "production"
   WorkingDir:
     Type: String
     Description: Working directory for IaC
-    Default: "infrastructure/gitsync-core/non-production"
+    Default: "infrastructure/gitsync-core/production"
   PipelineName:
     Type: String
     Default: codepipeline-gitsync-core-pipeline
