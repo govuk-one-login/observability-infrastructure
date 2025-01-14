@@ -11,8 +11,8 @@ aws cloudformation deploy \
   --region $REGION \
   --template-file notification-rules.yaml \
   --stack-name $STACK_NAME-Event-Rules \
-  --capabilities CAPABILITY_IAM
-  --parameter-overrides
+  --capabilities CAPABILITY_IAM \
+  --parameter-overrides \
     GitHubRepoName=${REPONAME}
 
 

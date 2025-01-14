@@ -7,6 +7,7 @@ CONNECTIONNAME=$3
 REGION="eu-west-2"
 BRANCHNAME=$4
 REPONAME=$5
+SecretName=$6
 
 echo "INFO: collecting connection ARN"
 CONNECTIONARN=$(
@@ -16,6 +17,14 @@ CONNECTIONARN=$(
     --region eu-west-2)
 
 echo "INFO: Using the codestar connection: (${CONNECTIONARN})"
+
+echo "INFO: collecting secret ARN"
+SECRETARN=$(
+  aws secretsmanager describe-secret \
+    --secret-id ${SecretName} \
+    --query "ARN" \
+    --output text \
+    --region eu-west-2)
 
 echo "INFO: deploying slack integration stack"
 aws cloudformation deploy \
@@ -27,7 +36,8 @@ aws cloudformation deploy \
     CTEnvironment=${ENVIRONMENT} \
     CodeStarConnection=${CONNECTIONARN} \
     BranchName=${BRANCHNAME} \
-    RepositoryName=${REPONAME}
+    RepositoryName=${REPONAME} \
+    SecretStoreArn=${SECRETARN}
 
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."

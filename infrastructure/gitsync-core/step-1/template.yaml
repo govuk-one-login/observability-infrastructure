@@ -29,6 +29,11 @@ Parameters:
     Default: "arn:aws:ec2:us-west-1:123456789012:instance/i-1234567890abcdef0" #dummy arn to be replaced by build spec env vars
     Description: The approved codestar connection name.
 
+  SecretStoreArn:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-west-1:123456789012:secret:secret-name" #dummy arn to be replaced by build spec env vars
+    Description: The approved secret store name.
+
 Resources:
 
 ######################################################################################################################
@@ -90,6 +95,14 @@ Resources:
                 Action:
                   - "Events:DescribeRule"
                 Resource: '*'
+        - PolicyName: !Sub Get-Secrets-${CTEnvironment}
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                Resource: !Ref SecretStoreArn
         - PolicyName: !Sub FMS-${CTEnvironment}
           PolicyDocument:
             Version: '2012-10-17'
