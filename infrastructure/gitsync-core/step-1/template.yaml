@@ -145,10 +145,10 @@ Resources:
               - iam:PassRole
               - kms:CreateAlias
               Resource:
-              - arn:aws:cloudformation:*:715841343135:type/resource/*
-              - arn:aws:iam::715841343135:role/*
-              - arn:aws:kms:*:715841343135:key/*
-              - arn:aws:kms:*:715841343135:alias/*
+              - !Sub arn:aws:cloudformation:*:{AWS::AccountId}:type/resource/*
+              - !Sub arn:aws:iam::{AWS::AccountId}:role/*
+              - !Sub arn:aws:kms:*:{AWS::AccountId}:key/*
+              - !Sub arn:aws:kms:*:{AWS::AccountId}:alias/*
             - Effect: Allow
               Action:
               - cloudformation:CreateUploadBucket
