@@ -33,6 +33,7 @@ Resources:
     Properties:
       Description: Secret for Dynatrace integration
       Name: !Sub ${Environment}/${SecretName}
+      KmsKeyId: !Ref KMSKey
       Tags: 
         - Key: Service
           Value: aws-metric-streams-client
@@ -40,6 +41,20 @@ Resources:
           Value: !Sub ${Environment}
         - Key: RepositoryName
           Value: !Sub ${RepositoryName}
+
+  KMSKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain 
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+        Statement:
+          - Effect: Allow
+            Action: kms:*
+            Principal:  
+              Service: secretsmanager.amazonaws.com
+            Resource: '*'
 
   FirehoseMetricStreams:
     Type: AWS::KinesisFirehose::DeliveryStream
@@ -104,6 +119,8 @@ Resources:
         Rules:
           - ExpirationInDays: 30
             Status: Enabled
+      VersioningConfiguration:
+           Status: Enabled
 
   FailedDataBucketRole:
     Type: AWS::IAM::Role
