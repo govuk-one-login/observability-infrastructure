@@ -103,18 +103,35 @@ Resources:
                 Action:
                   - "secretsmanager:GetSecretValue"
                 Resource: !Ref SecretStoreArn
-        - PolicyName: !Sub FMS-${CTEnvironment}
+        - PolicyName: !Sub Service-Creation-${CTEnvironment}
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
-                  - "wafv2:*"
-                  - "fms:*"
+                  - "firehose:*"
+                  - "cloudwatch:CreateMetricStream"
+                  - "cloudwatch:DeleteMetricStream"
+                  - "cloudwatch:DescribeMetricStreams"
+                  - "cloudwatch:PutMetricStream"
+                  - "cloudwatch:PutMetricData"
+                  - "cloudwatch:GetMetricData"
+                  - "cloudwatch:PutMetricAlarm"
                   - "kms:*"
                   - "sns:*"
                   - "s3:*"
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:CreateSecret"
+                  - "secretsmanager:PutSecretValue"
+                  - "secretsmanager:UpdateSecret"
+                  - "secretsmanager:DeleteSecret"
+                  - "secretsmanager:ListSecrets"
+                  - "secretsmanager:DescribeSecret"
+                  - "secretsmanager:TagResource"
+                  - "secretsmanager:UntagResource"
+                Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
               - Effect: Allow
                 Action:
                 - iam:CreateRole
@@ -124,7 +141,7 @@ Resources:
                 - iam:DeleteRolePolicy
                 - iam:GetRole
                 - iam:CreateServiceLinkedRole
-                Resource: "*"
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*
               - Effect: Allow
                 Action:
                 - codebuild:*
