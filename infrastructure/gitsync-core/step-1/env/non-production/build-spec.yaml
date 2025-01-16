@@ -3,4 +3,4 @@ phases:
   build:
     commands:
       - cd infrastructure/gitsync-core/step-1 
-      - ./deploy.sh Gitsync-core non-production GDS-GitHub-Connection main observability-infrastructure DynatraceSecrets-wJERy0
+      - ./deploy.sh Gitsync-core non-production GDS-GitHub-Connection main observability-infrastructure DynatraceSecrets
