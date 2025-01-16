@@ -12,8 +12,50 @@ Parameters:
     Type: String
     AllowedValues: [true, false]
     Default: true
+  SecretName:
+    Description: Secret name
+    Type: String  
+    Default: DynatraceSecrets
+  Environment:
+    Description: Deployment environment
+    Type: String
+    Default: nonproduction
+  RepositoryName:
+    Description: Repository name
+    Type: String
+    Default: observability-infrastructure
 
 Resources:
+  DynatraceSecrets:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: Secret for Dynatrace integration
+      Name: !Sub ${Environment}/${SecretName}
+      KmsKeyId: !Ref KMSKey
+      Tags: 
+        - Key: Service
+          Value: aws-metric-streams-client
+        - Key: Environment
+          Value: !Sub ${Environment}
+        - Key: RepositoryName
+          Value: !Sub ${RepositoryName}
+
+  KMSKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain 
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+        Statement:
+          - Effect: Allow
+            Action: kms:*
+            Principal:  
+              Service: secretsmanager.amazonaws.com
+            Resource: '*'
+
   FirehoseMetricStreams:
     Type: AWS::KinesisFirehose::DeliveryStream
     Properties:
@@ -23,13 +65,13 @@ Resources:
           IntervalInSeconds: 60
           SizeInMBs: 3
         EndpointConfiguration:
-          AccessKey: "{{resolve:secretsmanager:DynatraceSecrets:SecretString:DYNATRACE_API_KEY}}"
+          AccessKey: !Sub "{{resolve:secretsmanager:${SecretName}:SecretString:DYNATRACE_API_KEY}}" # will update to the DynatraceSecrets name after cutover
           Name: Dynatrace delivery endpoint
           Url: !Ref FirehoseHttpDeliveryEndpoint
         RequestConfiguration:
           CommonAttributes:
             - AttributeName: dt-url
-              AttributeValue: "{{resolve:secretsmanager:DynatraceSecrets:SecretString:DYNATRACE_ENVIRONMENT_URL}}"
+              AttributeValue: !Sub "{{resolve:secretsmanager:${SecretName}:SecretString:DYNATRACE_ENVIRONMENT_URL}}" # will update to the DynatraceSecrets name after cutover
             - AttributeName: require-valid-certificate
               AttributeValue: !Ref RequireValidCertificate
           ContentEncoding: GZIP
@@ -77,6 +119,8 @@ Resources:
         Rules:
           - ExpirationInDays: 30
             Status: Enabled
+      VersioningConfiguration:
+           Status: Enabled
 
   FailedDataBucketRole:
     Type: AWS::IAM::Role

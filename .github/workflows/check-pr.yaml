@@ -1,0 +1,26 @@
+name: Check PR
+
+on: pull_request
+permissions:
+  contents: read
+
+jobs:
+  run-cfn-lint:
+    name: Run cfn-lint
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Run cfn-lint
+        uses: govuk-one-login/github-actions/code-quality/check-linting@04aba26363bef051fb4fd40f0ac091b26e0e6836
+        with:
+          run-cfn-lint: true
+          run-prettier: false
+          run-eslint: false
+
+  run-checkov:
+    name: Run Checkov
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Checkov
+        uses: govuk-one-login/github-actions/code-quality/run-checkov@04aba26363bef051fb4fd40f0ac091b26e0e6836
+        with:
+          skip-checks: CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56

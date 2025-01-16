@@ -29,6 +29,11 @@ Parameters:
     Default: "arn:aws:ec2:us-west-1:123456789012:instance/i-1234567890abcdef0" #dummy arn to be replaced by build spec env vars
     Description: The approved codestar connection name.
 
+  SecretStoreArn:
+    Type: String
+    Default: "arn:aws:secretsmanager:us-west-1:123456789012:secret:secret-name" #dummy arn to be replaced by build spec env vars
+    Description: The approved secret store name.
+
 Resources:
 
 ######################################################################################################################
@@ -90,18 +95,43 @@ Resources:
                 Action:
                   - "Events:DescribeRule"
                 Resource: '*'
-        - PolicyName: !Sub FMS-${CTEnvironment}
+        - PolicyName: !Sub Get-Secrets-${CTEnvironment}
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
-                  - "wafv2:*"
-                  - "fms:*"
+                  - "secretsmanager:GetSecretValue"
+                Resource: !Ref SecretStoreArn
+        - PolicyName: !Sub Service-Creation-${CTEnvironment}
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "firehose:*"
+                  - "cloudwatch:CreateMetricStream"
+                  - "cloudwatch:DeleteMetricStream"
+                  - "cloudwatch:DescribeMetricStreams"
+                  - "cloudwatch:PutMetricStream"
+                  - "cloudwatch:PutMetricData"
+                  - "cloudwatch:GetMetricData"
+                  - "cloudwatch:PutMetricAlarm"
                   - "kms:*"
                   - "sns:*"
                   - "s3:*"
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:CreateSecret"
+                  - "secretsmanager:PutSecretValue"
+                  - "secretsmanager:UpdateSecret"
+                  - "secretsmanager:DeleteSecret"
+                  - "secretsmanager:ListSecrets"
+                  - "secretsmanager:DescribeSecret"
+                  - "secretsmanager:TagResource"
+                  - "secretsmanager:UntagResource"
+                Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
               - Effect: Allow
                 Action:
                 - iam:CreateRole
@@ -111,7 +141,7 @@ Resources:
                 - iam:DeleteRolePolicy
                 - iam:GetRole
                 - iam:CreateServiceLinkedRole
-                Resource: "*"
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*
               - Effect: Allow
                 Action:
                 - codebuild:*
@@ -132,10 +162,10 @@ Resources:
               - iam:PassRole
               - kms:CreateAlias
               Resource:
-              - arn:aws:cloudformation:*:715841343135:type/resource/*
-              - arn:aws:iam::715841343135:role/*
-              - arn:aws:kms:*:715841343135:key/*
-              - arn:aws:kms:*:715841343135:alias/*
+              - !Sub arn:aws:cloudformation:*:${AWS::AccountId}:type/resource/*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/*
+              - !Sub arn:aws:kms:*:${AWS::AccountId}:key/*
+              - !Sub arn:aws:kms:*:${AWS::AccountId}:alias/*
             - Effect: Allow
               Action:
               - cloudformation:CreateUploadBucket

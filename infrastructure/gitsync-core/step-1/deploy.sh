@@ -7,6 +7,7 @@ CONNECTIONNAME=$3
 REGION="eu-west-2"
 BRANCHNAME=$4
 REPONAME=$5
+SECRETNAME=$6
 
 echo "INFO: collecting connection ARN"
 CONNECTIONARN=$(
@@ -17,18 +18,40 @@ CONNECTIONARN=$(
 
 echo "INFO: Using the codestar connection: (${CONNECTIONARN})"
 
-echo "INFO: deploying slack integration stack"
-aws cloudformation deploy \
-  --region $REGION \
-  --stack-name $STACK_NAME-step-1 \
-  --template-file template.yaml \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --parameter-overrides \
-    CTEnvironment=${ENVIRONMENT} \
-    CodeStarConnection=${CONNECTIONARN} \
-    BranchName=${BRANCHNAME} \
-    RepositoryName=${REPONAME}
+if [[ -n "$SECRETNAME" ]]; then
+  echo "INFO: collecting secret ARN"
+  SECRETARN=$(
+    aws secretsmanager describe-secret \
+      --secret-id ${SECRETNAME} \
+      --query "ARN" \
+      --output text \
+      --region eu-west-2)
 
+  echo "INFO: deploying slack integration stack"
+  aws cloudformation deploy \
+    --region $REGION \
+    --stack-name $STACK_NAME-step-1 \
+    --template-file template.yaml \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --parameter-overrides \
+      CTEnvironment=${ENVIRONMENT} \
+      CodeStarConnection=${CONNECTIONARN} \
+      BranchName=${BRANCHNAME} \
+      RepositoryName=${REPONAME} \
+      SecretStoreArn=${SECRETARN}
+else
+  echo "INFO: deploying slack integration stack"
+  aws cloudformation deploy \
+    --region $REGION \
+    --stack-name $STACK_NAME-step-1 \
+    --template-file template.yaml \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --parameter-overrides \
+      CTEnvironment=${ENVIRONMENT} \
+      CodeStarConnection=${CONNECTIONARN} \
+      BranchName=${BRANCHNAME} \
+      RepositoryName=${REPONAME}
+fi
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."
 
