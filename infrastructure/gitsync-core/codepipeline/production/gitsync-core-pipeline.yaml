@@ -134,7 +134,13 @@ Resources:
                   - iam:DeleteServiceLinkedRole
                 Resource:
                   - "*"
-
+              - Sid: SecretManager
+                Effect: Allow
+                Action:
+                  - secretsmanager:ListSecrets
+                  - secretsmanager:DescribeSecret
+                Resource:
+                  - "*"
 
   ######################################################################################################################
   # CodePipeline role
