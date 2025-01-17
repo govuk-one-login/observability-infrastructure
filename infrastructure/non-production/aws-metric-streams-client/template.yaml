@@ -24,12 +24,46 @@ Parameters:
     Description: Repository name
     Type: String
     Default: observability-infrastructure
+  KeySpec:
+    Description: 'Specify the type of the CMK.'
+    Type: String
+    AllowedValues:
+    - SYMMETRIC_DEFAULT
+    - RSA_2048
+    - RSA_3072
+    - RSA_4096
+    - ECC_NIST_P256
+    - ECC_NIST_P384
+    - ECC_NIST_P521
+    - ECC_SECG_P256K1
+    Default: SYMMETRIC_DEFAULT
+  KeyUsage:
+    Description: 'Which cryptographic operations should the CMK support?'
+    Type: String
+    AllowedValues:
+    - ENCRYPT_DECRYPT
+    - SIGN_VERIFY
+    Default: ENCRYPT_DECRYPT
+  DeletionPolicy:
+    Description: 'Attribute you can preserve, and in some cases, backup a resource when its stack is deleted' 
+    Type: String
+    AllowedValues:
+    - Retain
+    - Delete
+    Default: Retain
+  UpdateReplacePolicy:
+    Description: 'Attribute to retain or, in some cases, backup the existing physical instance of a resource when it is replaced during a stack update operation.' 
+    Type: String
+    AllowedValues:
+    - Retain
+    - Delete
+    Default: Retain
 
 Resources:
   DynatraceSecrets:
     Type: AWS::SecretsManager::Secret
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: !Ref DeletionPolicy
+    UpdateReplacePolicy: !Ref UpdateReplacePolicy
     Properties:
       Description: Secret for Dynatrace integration
       Name: !Sub ${Environment}/${SecretName}
@@ -43,19 +77,37 @@ Resources:
           Value: !Sub ${RepositoryName}
 
   KMSKey:
-    Type: AWS::KMS::Key
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain 
+    DeletionPolicy: !Ref DeletionPolicy
+    UpdateReplacePolicy: !Ref UpdateReplacePolicy
+    Type: 'AWS::KMS::Key'
     Properties:
       EnableKeyRotation: true
+      KeySpec: !Ref KeySpec
+      KeyUsage: !Ref KeyUsage
       KeyPolicy:
+        Version: '2012-10-17'
         Statement:
-          - Effect: Allow
-            Action: kms:*
-            Principal:  
-              Service: secretsmanager.amazonaws.com
-            Resource: '*'
-
+        - Effect: Allow
+          Principal:
+            AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+          Action: 'kms:*'
+          Resource: '*'
+        - Sid: AllowSecretsManagerAccess
+          Effect: Allow
+          Principal:
+            Service: secretsmanager.amazonaws.com
+          Action:
+            - "kms:Decrypt"
+            - "kms:GenerateDataKey"
+          Resource: "*"
+      Tags: 
+        - Key: Service
+          Value: aws-metric-streams-client
+        - Key: Environment
+          Value: !Sub ${Environment}
+        - Key: RepositoryName
+          Value: !Sub ${RepositoryName}
+          
   FirehoseMetricStreams:
     Type: AWS::KinesisFirehose::DeliveryStream
     Properties:
@@ -65,13 +117,13 @@ Resources:
           IntervalInSeconds: 60
           SizeInMBs: 3
         EndpointConfiguration:
-          AccessKey: !Sub "{{resolve:secretsmanager:${SecretName}:SecretString:DYNATRACE_API_KEY}}" # will update to the DynatraceSecrets name after cutover
+          AccessKey: !Sub "{{resolve:secretsmanager:${SecretName}:SecretString:DYNATRACE_API_KEY}}" # will update to ${Environment}/${SecretName} name after cutover
           Name: Dynatrace delivery endpoint
           Url: !Ref FirehoseHttpDeliveryEndpoint
         RequestConfiguration:
           CommonAttributes:
             - AttributeName: dt-url
-              AttributeValue: !Sub "{{resolve:secretsmanager:${SecretName}:SecretString:DYNATRACE_ENVIRONMENT_URL}}" # will update to the DynatraceSecrets name after cutover
+              AttributeValue: !Sub "{{resolve:secretsmanager:${SecretName}:SecretString:DYNATRACE_ENVIRONMENT_URL}}" # will update to ${Environment}/${SecretName} name after cutover
             - AttributeName: require-valid-certificate
               AttributeValue: !Ref RequireValidCertificate
           ContentEncoding: GZIP
