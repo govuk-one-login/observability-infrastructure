@@ -19,7 +19,7 @@ Parameters:
   Environment:
     Description: Deployment environment
     Type: String
-    Default: nonproduction
+    Default: non-production
   RepositoryName:
     Description: Repository name
     Type: String
