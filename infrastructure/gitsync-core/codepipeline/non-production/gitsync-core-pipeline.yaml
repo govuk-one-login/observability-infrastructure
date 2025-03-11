@@ -124,6 +124,7 @@ Resources:
                   - codepipeline:*
                   - codebuild:*
                   - codestar-connections:*
+                  - codeconnections:*
                   - sts:AssumeRole # permission for assuming roles
                   - codestar:*
                   - s3:*

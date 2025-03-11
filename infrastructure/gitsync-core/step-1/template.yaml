@@ -117,6 +117,7 @@ Resources:
                   - "cloudwatch:PutMetricData"
                   - "cloudwatch:GetMetricData"
                   - "cloudwatch:PutMetricAlarm"
+                  - "cloudwatch:GetMetricStream"
                   - "kms:*"
                   - "sns:*"
                   - "s3:*"
