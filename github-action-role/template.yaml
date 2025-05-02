@@ -54,6 +54,7 @@ Resources:
                   - lambda:PublishLayerVersion
                   - lambda:AddLayerVersionPermission
                   - lambda:ListLayers
+                  - lambda:ListLayerVersions
                 Resource: '*'
               - Effect: Allow
                 Action:
