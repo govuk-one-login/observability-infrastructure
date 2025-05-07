@@ -1,6 +1,14 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Role able to be used by GitHub Actions
 
+Parameters:  # Parameters for the template
+  SecretPrefix:
+    Type: String
+    Description: Prefix for Secrets Manager secrets.
+  ArtifactBucketName:
+    Type: String
+    Description: Name of the S3 bucket for artifacts.
+
 Resources:
   GitHubActionRole:
     Type: AWS::IAM::Role
