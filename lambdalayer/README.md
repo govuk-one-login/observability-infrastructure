@@ -108,13 +108,24 @@ The update-layers workflow runs on a weekly basis and updates the layers, but it
 
 Deployment workflows are triggered based on Git events and corresponding AWS Secrets Manager secrets:
 
-Development: feature/* branch triggers deployment using DynatraceTestVariables secret in the development account.
-Non-Production: Merge to main branch triggers deployment using DynatraceNonProductionVariables secret in the production account.
-Production: Tag creation (VERSION) triggers deployment using DynatraceProductionVariables secret in the production account.
+**Development:**
 
-The desired Dynatrace OneAgent version is specified in /lambdalayer/one-agent-version/VERSION, standardizing the deployed version for all new builds.
+* `feature/*` branch triggers deployment using `DynatraceTestVariables` secret in the development account.
 
-OneAgent Upgrade: To upgrade existing Lambdas, teams must rebuild their deployments to incorporate the latest LAYER_VERSION_ARN from the updated DynatraceProductionVariables secret.
+**Non-Production:**
+
+* Merge to `main` branch triggers deployment using `DynatraceNonProductionVariables` secret in the production account.
+
+**Production:**
+
+* Tag creation (`VERSION`) triggers deployment using `DynatraceProductionVariables` secret in the production account.
+
+The desired Dynatrace OneAgent version is specified in `/lambdalayer/one-agent-version/VERSION`, standardizing the deployed version for all new builds.
+
+**OneAgent Upgrade:**
+
+To upgrade existing Lambdas, teams must rebuild their deployments to incorporate the latest `LAYER_VERSION_ARN` from the updated `DynatraceProductionVariables` secret.
+
 
 ## Notes for future
 
