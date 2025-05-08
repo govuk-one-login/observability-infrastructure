@@ -117,13 +117,13 @@ Resources:
           IntervalInSeconds: 60
           SizeInMBs: 3
         EndpointConfiguration:
-          AccessKey: !Sub "{{resolve:secretsmanager:${SecretName}:SecretString:DYNATRACE_API_KEY}}"
+          AccessKey: !Sub "{{resolve:secretsmanager:${Environment}/${SecretName}:SecretString:DYNATRACE_API_KEY}}"
           Name: Dynatrace delivery endpoint
           Url: !Ref FirehoseHttpDeliveryEndpoint
         RequestConfiguration:
           CommonAttributes:
             - AttributeName: dt-url
-              AttributeValue: !Sub "{{resolve:secretsmanager:${SecretName}:SecretString:DYNATRACE_ENVIRONMENT_URL}}"
+              AttributeValue: !Sub "{{resolve:secretsmanager:${Environment}/${SecretName}:SecretString:DYNATRACE_ENVIRONMENT_URL}}"
             - AttributeName: require-valid-certificate
               AttributeValue: !Ref RequireValidCertificate
           ContentEncoding: GZIP
