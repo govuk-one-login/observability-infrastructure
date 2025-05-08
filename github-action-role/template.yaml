@@ -1,6 +1,14 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Role able to be used by GitHub Actions
 
+Parameters:  # Parameters for the template
+  SecretPrefix:
+    Type: String
+    Description: Prefix for Secrets Manager secrets.
+  ArtifactBucketName:
+    Type: String
+    Description: Name of the S3 bucket for artifacts.
+
 Resources:
   GitHubActionRole:
     Type: AWS::IAM::Role
@@ -20,8 +28,8 @@ Resources:
                 "token.actions.githubusercontent.com:sub":
                   - "repo:govuk-one-login/observability-infrastructure:*"
                   - "repo:govuk-one-login/observability-dynatrace-resources:*"
-                  - "repo:govuk-one-login/observability-secrets:*"                  
-                "token.actions.githubusercontent.com:aud": 
+                  - "repo:govuk-one-login/observability-secrets:*"
+                "token.actions.githubusercontent.com:aud":
                   - "sts.amazonaws.com"
       Path: /
       Policies:
@@ -32,38 +40,60 @@ Resources:
               - Effect: Allow
                 Action:
                   - secretsmanager:GetSecretValue
-                  - secretsmanager:PutSecretValue
-                  - secretsmanager:ListSecrets
-                  - secretsmanager:CreateSecret                  
-                Resource: '*'
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretPrefix}*" # Use a parameter/variable!
+                # Description:  Allow to get specific secrets values.  Use a parameter SecretPrefix
               - Effect: Allow
                 Action:
-                  - s3:*
-                Resource: '*'
+                  - secretsmanager:ListSecrets
+                Resource: "*" # List needs to be account-wide
+                #Description:  Allow listing of all secrets in account
+              - Effect: Allow
+                Action:
+                  - secretsmanager:CreateSecret
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretPrefix}*"
+                # Description: Allow the creation of secrets with a specific prefix
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${ArtifactBucketName}/*"  # Use a parameter!
+                Condition:
+                  StringEquals:
+                    "s3:x-amz-acl": "private" #optional
+                # Description: Allow read/write access to a specific S3 bucket.
               - Effect: Allow
                 Action:
                   - signer:StartSigningJob
-                Resource: !Sub 'arn:aws:signer:eu-west-2:${AWS::AccountId}:/signing-profiles/DynatraceSigner'
+                Resource: !Sub "arn:aws:signer:${AWS::Region}:${AWS::AccountId}:/signing-profiles/DynatraceSigner"
+                # Description: Allow start signing job
               - Effect: Allow
                 Action:
                   - signer:DescribeSigningJob
-                Resource: '*'
+                Resource: "*"
+                # Description: Allow describing any signing job
               - Effect: Allow
                 Action:
                   - lambda:GetLayerVersion
                   - lambda:PublishLayerVersion
                   - lambda:AddLayerVersionPermission
                   - lambda:ListLayers
-                Resource: '*'
-              - Effect: Allow
+                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:*"
+                # Description:  Limit to layers within the account.
+              - Effect: Deny
                 Action:
                   - kms:*
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - dynamodb:*
-                Resource: 'arn:aws:dynamodb:*:*:table/terraform-state-lock-table'
-              - Effect: Allow
+                Resource: "*"
+                # Description:  Explicitly deny all KMS actions.
+              - Effect: Deny
                 Action:
                   - iam:*
-                Resource: '*'
+                Resource: "*"
+                # Description:  Explicitly deny all IAM actions.
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:DescribeTable
+                Resource: 'arn:aws:dynamodb:*:*:table/terraform-state-lock-table'
+                # Description:  Allow only specific actions on the terraform lock table
