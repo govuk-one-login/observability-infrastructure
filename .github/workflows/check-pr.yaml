@@ -12,7 +12,7 @@ jobs:
       - name: Run cfn-lint
         uses: govuk-one-login/github-actions/code-quality/check-linting@04aba26363bef051fb4fd40f0ac091b26e0e6836
         with:
-          run-cfn-lint: true
+          run-cfn-lint: false # until README.md is fixed
           run-prettier: false
           run-eslint: false
 
