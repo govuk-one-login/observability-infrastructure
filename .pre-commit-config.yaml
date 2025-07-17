@@ -5,4 +5,4 @@ repos:
     hooks:
       - id: checkov
         # verbose: true
-        args: [ --soft-fail, --quiet ]
+        args: [--skip-check CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56, --quiet]
