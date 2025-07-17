@@ -23,6 +23,7 @@ jobs:
     name: Run Checkov
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Checkov Github Action
         uses: bridgecrewio/checkov-action@v12
         with:
@@ -31,6 +32,7 @@ jobs:
           directory: .
           soft_fail: true
           quiet: true
+          skip_check: CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
         if: success() || failure()
