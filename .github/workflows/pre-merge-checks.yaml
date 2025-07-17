@@ -23,10 +23,6 @@ jobs:
     name: Run Checkov
     runs-on: ubuntu-latest
     steps:
-      - name: Run Checkov
-        uses: govuk-one-login/github-actions/code-quality/run-checkov@04aba26363bef051fb4fd40f0ac091b26e0e6836
-        with:
-          skip-checks: CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56
       - name: Checkov Github Action
         uses: bridgecrewio/checkov-action@v12
         with:
