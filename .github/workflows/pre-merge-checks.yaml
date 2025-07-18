@@ -1,0 +1,40 @@
+name: Check PR
+
+on: pull_request
+#Prevent default write-all access - this was pointed out by this checkov check CKV2_GHA_1
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+
+jobs:
+  run-cfn-lint:
+    name: Run cfn-lint
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Run cfn-lint
+        uses: govuk-one-login/github-actions/code-quality/check-linting@04aba26363bef051fb4fd40f0ac091b26e0e6836
+        with:
+          run-cfn-lint: false # until README.md is fixed
+          run-prettier: false
+          run-eslint: false
+
+  run-checkov:
+    name: Run Checkov
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkov Github Action
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+          directory: .
+          soft_fail: true
+          quiet: true
+          skip_check: CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        if: success() || failure()
+        with:
+          sarif_file: results.sarif

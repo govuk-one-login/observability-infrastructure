@@ -1,0 +1,8 @@
+---
+repos:
+  - repo: https://github.com/bridgecrewio/checkov.git
+    rev: 3.2.450
+    hooks:
+      - id: checkov
+        # verbose: true
+        args: [--skip-check CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56, --quiet]

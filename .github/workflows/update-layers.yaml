@@ -9,6 +9,9 @@ on:
     - cron:  '11 2 3 * *'
   workflow_dispatch:
 
+#Prevent default write-all access - this was pointed out by this checkov check CKV2_GHA_1
+permissions: read-all
+
 jobs:
   dev:
     runs-on: ubuntu-latest
