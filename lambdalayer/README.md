@@ -4,6 +4,16 @@ Below are the instructions for adding the Dyantrace Layer to a Lambda Function.
 
 If you have any issues with the implementation, please refer to the [FAQ](../FAQ.md) first.
 
+## Versions
+Two versions are being maintained, meaning only the following versions of the OneAgent can be deployed.
+
+| Secret ARN 	| Secret Version 	| Includes Layers Version 	| Valid From 	| Valid To 	|
+|------------	|----------------	|--------------------	|------------	|----------	|
+|  arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables | dab72f93-261a-484e-8578-6d96d5ec71d6                 	|       1_299             	|     September 24       	|     March 25     	|
+|  arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables | d1a271d9-191f-4ca5-a149-b0f4e2e99b3a                	|       1_299            	|     September 24       	|     March 25     	|
+|  arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables | c92956bd-f2c4-4dff-b832-63e627657c0c                	|       1_311             	|     May 25       	|     November 25     	|
+|  arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables | bf8979d1-f9ea-4823-8aaa-b2d0d82abfdb                	|       1_311             	|     May 25       	|     November 25     	|
+
 ### Prerequisites
 
 Ensure you run the latest VPC stack and SAM Deployment Pipeline stack versions. At time of writing, v2.2.3 and v2.37.2, respectively. You can check the version of stacks in the [CloudFormation Console](https://eu-west-2.console.aws.amazon.com/cloudformation/home?region=eu-west-2#/stacks) in the description column.
@@ -44,18 +54,24 @@ Conditions:
   UseCodeSigning:
     !Not [!Equals [none, !Ref CodeSigningConfigArn]]
 
+# Delete where appropriate
 Mappings:
   EnvironmentConfiguration:
     dev:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      dynatraceSecretVersion: c92956bd-f2c4-4dff-b832-63e627657c0c
     build:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      dynatraceSecretVersion: c92956bd-f2c4-4dff-b832-63e627657c0c
     staging:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      dynatraceSecretVersion: c92956bd-f2c4-4dff-b832-63e627657c0c
     integration:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      dynatraceSecretVersion: c92956bd-f2c4-4dff-b832-63e627657c0c
     production:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
+      dynatraceSecretVersion: bf8979d1-f9ea-4823-8aaa-b2d0d82abfdb
 
 Globals:
   Function:
@@ -63,20 +79,25 @@ Globals:
       Variables:
         AWS_LAMBDA_EXEC_WRAPPER: /opt/dynatrace
         DT_CONNECTION_AUTH_TOKEN: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN::${SecretVersion}}}'
           - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+            SecretVersion: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretVersion ]
         DT_CONNECTION_BASE_URL: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL::${SecretVersion}}}'
           - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+            SecretVersion: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretVersion ]
         DT_CLUSTER_ID: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID::${SecretVersion}}}'
           - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+            SecretVersion: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretVersion ]
         DT_LOG_COLLECTION_AUTH_TOKEN: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN::${SecretVersion}}}'
           - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+            SecretVersion: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretVersion ]
         DT_TENANT: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT::${SecretVersion}}}'
           - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+            SecretVersion: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretVersion ]
         DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
     Runtime: java17
     Architectures:
@@ -89,8 +110,9 @@ Globals:
       - !Ref AWS::NoValue
     Layers: 
       - !Sub
-        - '{{resolve:secretsmanager:${SecretArn}:SecretString:JAVA_LAYER}}' # or NODEJS_LAYER or PYTHON_LAYER
+        - '{{resolve:secretsmanager:${SecretArn}:SecretString:JAVA_LAYER::${SecretVersion}}}' # or NODEJS_LAYER or PYTHON_LAYER
         - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+          SecretVersion: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretVersion ]
 
 Resources:
 ...
