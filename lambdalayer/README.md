@@ -23,6 +23,24 @@ This does assume you are using the same runtime for all Lambda functions, if thi
 
 If you are not using Cloudformation or the following does not satisfy your team's requirements, reach out, and we can try to help!
 
+### Configuration Values
+
+| Configuration 	                      | NonProd Value 	                     | Prod Value 	                        |
+|-------------------------------------- |------------------------------------- |-------------------------------------	|
+| DT_CONNECTION_BASE_URL                | https://khw46367.live.dynatrace.com  | https://bhe21058.live.dynatrace.com  |
+| DT_CLUSTER_ID                         | -1480073609               	         | -1480073609                   	      |
+| DT_TENANT                             | khw46367               	             | bhe21058                   	        |
+| DT_OPEN_TELEMETRY_ENABLE_INTEGRATION  | true               	                 | true                   	            |
+
+### Currently Supported Layer ARNs
+
+| Layer 	      | NonProd ARN 	                                                                                                 | Prod ARN 	                                                                                                    |
+|---------------|--------------------------------------------------------------------------------------------------------------- |--------------------------------------------------------------------------------------------------------------- |
+| NODEJS_LAYER  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 |
+| JAVA_LAYER    | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  |
+| PYTHON_LAYER  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 |
+
+
 ```yaml
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
