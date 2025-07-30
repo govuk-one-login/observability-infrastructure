@@ -34,11 +34,14 @@ If you are not using Cloudformation or the following does not satisfy your team'
 
 ### Currently Supported Layer ARNs
 
-| Layer 	      | NonProd ARN 	                                                                                                 | Prod ARN 	                                                                                                    |
-|---------------|--------------------------------------------------------------------------------------------------------------- |--------------------------------------------------------------------------------------------------------------- |
-| NODEJS_LAYER  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 |
-| JAVA_LAYER    | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  |
-| PYTHON_LAYER  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 |
+| Layer 	      | Current  | NonProd ARN 	                                                                                                  | Prod ARN 	                                                                                                     |
+|-------------- |--------- |--------------------------------------------------------------------------------------------------------------- |--------------------------------------------------------------------------------------------------------------- |
+| NODEJS_LAYER  | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 |
+| JAVA_LAYER    | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  |
+| PYTHON_LAYER  | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 |
+| NODEJS_LAYER  |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_2_20240809-044254_with_collector_nodejs:2 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_2_20240809-044254_with_collector_nodejs:2 |
+| JAVA_LAYER    |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:2  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:2  |
+| PYTHON_LAYER  |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:2 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:2 |
 
 
 ```yaml
