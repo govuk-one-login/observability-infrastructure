@@ -43,6 +43,7 @@ If you are not using Cloudformation or the following does not satisfy your team'
 | JAVA_LAYER    |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:2  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:2  |
 | PYTHON_LAYER  |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:2 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:2 |
 
+For specific information regarding each of the layer versions, please take a look at the [Release Notes](https://docs.dynatrace.com/docs/whats-new/oneagent).
 
 ```yaml
 AWSTemplateFormatVersion: 2010-09-09
