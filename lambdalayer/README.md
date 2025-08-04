@@ -34,14 +34,14 @@ If you are not using Cloudformation or the following does not satisfy your team'
 
 ### Currently Supported Layer ARNs
 
-| Layer 	      | Current  | NonProd ARN 	                                                                                                  | Prod ARN 	                                                                                                     |
-|-------------- |--------- |--------------------------------------------------------------------------------------------------------------- |--------------------------------------------------------------------------------------------------------------- |
-| NODEJS_LAYER  | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 |
-| JAVA_LAYER    | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  |
-| PYTHON_LAYER  | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 |
-| NODEJS_LAYER  |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_2_20240809-044254_with_collector_nodejs:2 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_2_20240809-044254_with_collector_nodejs:2 |
-| JAVA_LAYER    |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:2  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:2  |
-| PYTHON_LAYER  |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:2 | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:2 |
+| Layer 	      | Current  | Layer ARNs  	                                                                                                  |
+|-------------- |--------- |--------------------------------------------------------------------------------------------------------------- |
+| NODEJS_LAYER  | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 |
+| JAVA_LAYER    | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  |
+| PYTHON_LAYER  | Yes      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 |
+| NODEJS_LAYER  |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_2_20240809-044254_with_collector_nodejs:2 |
+| JAVA_LAYER    |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:2  |
+| PYTHON_LAYER  |          | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:2 |
 
 For specific information regarding each of the layer versions, please take a look at the [Release Notes](https://docs.dynatrace.com/docs/whats-new/oneagent).
 
@@ -117,14 +117,6 @@ Resources:
 ...
 ```
 
-### Notes
-
-When using Java, please ensure you have a minimum of 1.5GB of RAM for the layer to run with. This is not necessary with NodeJS or Python. Please see the Dynatrace [documentation](https://www.dynatrace.com/support/help/shortlink/aws-lambda-extension#lambda-java-rt-mem-limit).
-
-## Updating the layers
-
-The update-layers workflow runs on a weekly basis and updates the layers, but it can also be executed manually.
-
 ## Lambda Layer Deployment
 
 Deployment workflows are triggered based on Git events and corresponding AWS Secrets Manager secrets:
@@ -135,7 +127,17 @@ Production: Tag creation (VERSION) triggers deployment using DynatraceProduction
 
 The desired Dynatrace OneAgent version is specified in /lambdalayer/one-agent-version/VERSION, standardizing the deployed version for all new builds.
 
-OneAgent Upgrade: To upgrade existing Lambdas, teams must rebuild their deployments to incorporate the latest LAYER_VERSION_ARN from the updated DynatraceProductionVariables secret.
+### OneAgent Upgrade
+To upgrade existing Lambdas, teams must rebuild their deployments to incorporate the latest LAYER_VERSION_ARN, on line 114, from the "Currently Supported Layer ARNs" table.
+Validation should be done as part of the applications CI testing through to Production.
+
+### Notes
+
+When using Java, please ensure you have a minimum of 1.5GB of RAM for the layer to run with. This is not necessary with NodeJS or Python. Please see the Dynatrace [documentation](https://www.dynatrace.com/support/help/shortlink/aws-lambda-extension#lambda-java-rt-mem-limit).
+
+### Updating the layers
+
+The update-layers workflow runs on a weekly basis and updates the layers, but it can also be executed manually.
 
 ## Notes for future
 
