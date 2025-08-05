@@ -128,7 +128,9 @@ Production: Tag creation (VERSION) triggers deployment using DynatraceProduction
 The desired Dynatrace OneAgent version is specified in /lambdalayer/one-agent-version/VERSION, standardizing the deployed version for all new builds.
 
 ### OneAgent Upgrade
-To upgrade existing Lambdas, teams must rebuild their deployments to incorporate the latest LAYER_VERSION_ARN, on line 114, from the "Currently Supported Layer ARNs" table.
+Teams should ensure that their lambda layer is always on the latest available, as quickly as possible after it has been released.  The time period that the layer is supported is available next to each layer.
+
+To upgrade existing Lambdas, teams should re-point their applications to use the correct new layer ARN, as specified in the "Currently Supported Layer ARNs" table.
 Validation should be done as part of the applications CI testing through to Production.
 
 ### Notes
