@@ -111,7 +111,7 @@ Globals:
       - !Ref AWS::NoValue
     Layers: 
       # Please see above, in the Layer ARNs table, for the language specific ARNs and copy it onto the below line
-      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_36_20250507-184408_with_collector_java:1
+      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1
 
 Resources:
 ...
