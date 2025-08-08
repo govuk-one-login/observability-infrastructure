@@ -32,16 +32,16 @@ If you are not using Cloudformation or the following does not satisfy your team'
 | DT_TENANT                             | khw46367               	             | bhe21058                   	        |
 | DT_OPEN_TELEMETRY_ENABLE_INTEGRATION  | true               	                 | true                   	            |
 
-### Currently Supported Layer ARNs
+### Layer ARNs
 
-| Layer 	      | Valid From | Valid To  | Layer ARNs  	                                                                                                  |
-|-------------- |----------- |---------- |--------------------------------------------------------------------------------------------------------------- |
-| NODEJS_LAYER  | Apr 2025   | Jan 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1 |
-| JAVA_LAYER    | Apr 2025   | Jan 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1  |
-| PYTHON_LAYER  | Apr 2025   | Jan 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1 |
-| NODEJS_LAYER  | Sep 2024   | Jun 2025  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_2_20240809-044254_with_collector_nodejs:2 |
-| JAVA_LAYER    | Sep 2024   | Jun 2025  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:2  |
-| PYTHON_LAYER  | Sep 2024   | Jun 2025  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:2 |
+| Layer 	      | Valid From | Valid To  | Layer ARNs  	                                                                                                   |
+|-------------- |----------- |---------- |---------------------------------------------------------------------------------------------------------------- |
+| NODEJS_LAYER  | May 2025   | Feb 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_2_20250404-043044_with_collector_nodejs:1  |
+| JAVA_LAYER    | May 2025   | Feb 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_36_20250507-184408_with_collector_java:1   |
+| PYTHON_LAYER  | May 2025   | Feb 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_2_20250404-042729_with_collector_python:1  |
+| NODEJS_LAYER  | Apr 2025   | Jan 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1  |
+| JAVA_LAYER    | Apr 2025   | Jan 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1   |
+| PYTHON_LAYER  | Apr 2025   | Jan 2026  | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-043439_with_collector_python:1  |
 
 For specific information regarding each of the layer versions, please take a look at the [Release Notes](https://docs.dynatrace.com/docs/whats-new/oneagent).
 
@@ -110,8 +110,8 @@ Globals:
       - !Ref CodeSigningConfigArn
       - !Ref AWS::NoValue
     Layers: 
-      # Please see above, in the Currently Supported Layer ARNs table, for the language specific ARNs and copy it onto the below line
-      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1
+      # Please see above, in the Layer ARNs table, for the language specific ARNs and copy it onto the below line
+      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_36_20250507-184408_with_collector_java:1
 
 Resources:
 ...
