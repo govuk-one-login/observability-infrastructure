@@ -39,6 +39,9 @@ New versions are made available on the 3rd of each month.
 
 | Layer Version  | Layer        | Layer ARNs  	                                                                                                  |
 |--------------- |------------- |---------------------------------------------------------------------------------------------------------------- |
+| 1.325          | NODEJS_LAYER | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_325_7_20250925-155144_with_collector_nodejs    | 
+|                | PYTHON_LAYER | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_325_4_20250923-110827_with_collector_python    |
+|                | JAVA_LAYER   | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_325_39_20251016-084120_with_collector_java     |
 | 1.323          | NODEJS_LAYER | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_323_2_20250822-051314_with_collector_nodejs:1  |
 |                | PYTHON_LAYER | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_323_2_20250822-050409_with_collector_python:1  |
 |                | JAVA_LAYER   | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_323_32_20250917-150137_with_collector_java:1   |
@@ -75,9 +78,6 @@ New versions are made available on the 3rd of each month.
 | 1.301          | NODEJS_LAYER | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_301_2_20240906-044428_with_collector_nodejs:1  |
 |                | PYTHON_LAYER | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_301_2_20240906-043640_with_collector_python:1  |
 |                | JAVA_LAYER   | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_301_36_20240927-183747_with_collector_java:1   |
-| 1.299          | NODEJS_LAYER | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_2_20240809-044254_with_collector_nodejs:1  |
-|                | PYTHON_LAYER | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_3_20240813-131707_with_collector_python:1  |
-|                | JAVA_LAYER   | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_23_20240903-115619_with_collector_java:1   |
 
 For specific information regarding each of the layer versions, please take a look at the [Release Notes](https://docs.dynatrace.com/docs/whats-new/oneagent).
 
