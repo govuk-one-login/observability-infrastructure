@@ -12,10 +12,10 @@ PROD_DYNATRACE_SECRETS=`aws secretsmanager get-secret-value --secret-id Dynatrac
 DT_BASE_URL=`echo $DYNATRACE_SECRETS | jq -r ".DT_CONNECTION_BASE_URL"`
 
 # Get all of the the names of possible 'with_collector' dyanatrace lambda layers
-LAYER_NAMES=`curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/agent/latest" -H "accept: application/json; charset=utf-8" -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN"  | jq " . | (with_entries( select(.key|contains(\"java_with\"))) | .[] | . + \"_java\" ), (with_entries( select(.key|contains(\"python_with\"))) | .[] | . + \"_python\"), (with_entries( select(.key|contains(\"nodejs_with\"))) | .[]| . + \"_nodejs\") " | tr -d '"'`
+LAYER_NAMES=`curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer" -H "accept: application/json; charset=utf-8" -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN"  | jq " . | (with_entries( select(.key|contains(\"java_with\"))) | .[] | . + \"_java\" ), (with_entries( select(.key|contains(\"python_with\"))) | .[] | . + \"_python\"), (with_entries( select(.key|contains(\"nodejs_with\"))) | .[]| . + \"_nodejs\") " | tr -d '"'`
 
 for LAYER_NAME in $LAYER_NAMES
-do
+    do
 
     # get the runtime of the current layer
     RUNTIME=`echo "$LAYER_NAME" | tr '_' '\n' | tail -n 1`
