@@ -12,7 +12,25 @@ PROD_DYNATRACE_SECRETS=`aws secretsmanager get-secret-value --secret-id Dynatrac
 DT_BASE_URL=`echo $DYNATRACE_SECRETS | jq -r ".DT_CONNECTION_BASE_URL"`
 
 # Get all of the the names of possible 'with_collector' dyanatrace lambda layers
-LAYER_NAMES=`curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer" -H "accept: application/json; charset=utf-8" -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN"  | jq " . | (with_entries( select(.key|contains(\"java_with\"))) | .[] | . + \"_java\" ), (with_entries( select(.key|contains(\"python_with\"))) | .[] | . + \"_python\"), (with_entries( select(.key|contains(\"nodejs_with\"))) | .[]| . + \"_nodejs\") " | tr -d '"'`
+# LAYER_NAMES=`curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer" -H "accept: application/json; charset=utf-8" -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN"  | jq " . | (with_entries( select(.key|contains(\"java_with\"))) | .[] | . + \"_java\" ), (with_entries( select(.key|contains(\"python_with\"))) | .[] | . + \"_python\"), (with_entries( select(.key|contains(\"nodejs_with\"))) | .[]| . + \"_nodejs\") " | tr -d '"'`
+
+LAYER_NAMES=`curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer?withCollector=included" \
+  -H "accept: application/json; charset=utf-8" \
+  -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN" | \
+  jq -r '
+    .arns[] |
+    # Filter for layers that INCLUDE the collector
+    select(.withCollector == "included") |
+    (
+      # The output format is ARN_runtime
+      .arn + "_" + 
+      if (.techType == "java") then "java"
+      elif (.techType == "python") then "python"
+      elif (.techType == "nodejs") then "nodejs"
+      else empty # Skip if techType is unexpected (e.g., 'go', 'custom')
+      end
+    )
+  ' | tr -d '"'`
 
 for LAYER_NAME in $LAYER_NAMES
     do
