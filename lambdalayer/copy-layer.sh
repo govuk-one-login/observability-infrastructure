@@ -1,20 +1,46 @@
 #!/bin/bash
+# Exit immediately if a command exits with a non-zero status or a variable is unset.
 set -eu
 
-DYNATRACE_CONFIG=`aws secretsmanager get-secret-value --secret-id DynatraceLayersConfig`
+# --- 1. Utility Functions ---
 
-DYNATRACE_PAAS_TOKEN=`echo $DYNATRACE_CONFIG | jq -r ".SecretString | fromjson | .TOKEN"`
-BUCKET_NAME=`echo $DYNATRACE_CONFIG| jq -r ".SecretString | fromjson | .S3_BUCKET"`
-SIGNING_PROFILE=`echo $DYNATRACE_CONFIG | jq -r ".SecretString | fromjson | .SIGNING_PROFILE"`
-DYNATRACE_SECRETS=`aws secretsmanager get-secret-value --secret-id DynatraceNonProductionVariables | jq -r ".SecretString | fromjson"`
-PROD_DYNATRACE_SECRETS=`aws secretsmanager get-secret-value --secret-id DynatraceProductionVariables | jq -r ".SecretString | fromjson"`
+# Function to retrieve a secret value and parse its SecretString into a variable.
+# Rationale: Centralizes the AWS CLI call and complex JSON parsing for cleaner code.
+get_secret_json() {
+    local secret_id="$1"
+    local target_var_name="$2"
+    
+    echo "STATUS: Fetching secret: $secret_id"
+    local secret_value
+    secret_value=$(aws secretsmanager get-secret-value --secret-id "$secret_id" | jq -r '.SecretString | fromjson')
+    
+    eval "$target_var_name=\$secret_value"
+}
 
-DT_BASE_URL=`echo $DYNATRACE_SECRETS | jq -r ".DT_CONNECTION_BASE_URL"`
 
-# Get all of the the names of possible 'with_collector' dyanatrace lambda layers
-# LAYER_NAMES=`curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer" -H "accept: application/json; charset=utf-8" -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN"  | jq " . | (with_entries( select(.key|contains(\"java_with\"))) | .[] | . + \"_java\" ), (with_entries( select(.key|contains(\"python_with\"))) | .[] | . + \"_python\"), (with_entries( select(.key|contains(\"nodejs_with\"))) | .[]| . + \"_nodejs\") " | tr -d '"'`
+# --- 2. Secret and Configuration Retrieval ---
 
-LAYER_NAMES=`curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer?withCollector=included" \
+# Fetch and parse core configuration secrets once
+DT_CONFIG_JSON=$(aws secretsmanager get-secret-value --secret-id DynatraceLayersConfig | jq -r ".SecretString | fromjson")
+
+DYNATRACE_PAAS_TOKEN=$(echo "$DT_CONFIG_JSON" | jq -r ".TOKEN")
+BUCKET_NAME=$(echo "$DT_CONFIG_JSON" | jq -r ".S3_BUCKET")
+SIGNING_PROFILE=$(echo "$DT_CONFIG_JSON" | jq -r ".SIGNING_PROFILE")
+
+# Retrieve and parse environment-specific secrets using the helper function
+get_secret_json DynatraceNonProductionVariables DYNATRACE_SECRETS
+get_secret_json DynatraceProductionVariables PROD_DYNATRACE_SECRETS
+
+DT_BASE_URL=$(echo "$DYNATRACE_SECRETS" | jq -r ".DT_CONNECTION_BASE_URL")
+
+
+# --- 3. Dynatrace Layer ARN Retrieval (API MIGRATION AND PARSING FIX) ---
+
+echo "STATUS: Fetching Dynatrace layer ARNs from new API endpoint: $DT_BASE_URL/api/v1/deployment/lambda/layer"
+
+# Updated curl URL to use the new API and filter by "withCollector=included".
+# The entire command is designed to prevent the previous parsing error.
+LAYER_DATA=$(curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer?withCollector=included" \
   -H "accept: application/json; charset=utf-8" \
   -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN" | \
   jq -r '
@@ -22,86 +48,130 @@ LAYER_NAMES=`curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer?withColle
     # Filter for layers that INCLUDE the collector
     select(.withCollector == "included") |
     (
-      # The output format is ARN_runtime
-      .arn + "_" + 
-      if (.techType == "java") then "java"
-      elif (.techType == "python") then "python"
-      elif (.techType == "nodejs") then "nodejs"
-      else empty # Skip if techType is unexpected (e.g., 'go', 'custom')
-      end
+      # NEW OUTPUT FORMAT: FULL_ARN | RUNTIME (e.g., arn:aws:lambda:...|python)
+      # Rationale: The pipe "|" is a reliable delimiter for the Bash loop, fixing the previous parsing bug.
+      .arn + "|" + .techType
     )
-  ' | tr -d '"'`
+  ')
 
-for LAYER_NAME in $LAYER_NAMES
-    do
+if [ -z "$LAYER_DATA" ]; then
+    echo "ERROR: No Dynatrace layers found or API call failed."
+    exit 1
+fi
 
-    # get the runtime of the current layer
-    RUNTIME=`echo "$LAYER_NAME" | tr '_' '\n' | tail -n 1`
+echo "STATUS: Retrieved layer data successfully."
 
-    LAYER_VERSION=`aws lambda get-layer-version-by-arn --arn arn:aws:lambda:eu-west-2:725887861453:layer:$LAYER_NAME:1`
 
-    LAYER_LOCATION=`echo $LAYER_VERSION | jq -r '.Content.Location'`
+# --- 4. Main Layer Processing Loop ---
 
-    curl -o /tmp/layer.zip $LAYER_LOCATION
+# Use the pipe delimiter (IFS='|') to safely read the ARN and the runtime suffix
+# Rationale: This robust loop ensures the full, clean ARN and runtime are separated correctly.
+echo "$LAYER_DATA" | while IFS='|' read -r SOURCE_ARN RUNTIME
+do
+    echo "--- PROCESSING LAYER: $RUNTIME ---"
+    
+    # 4a. Define Variables and Clean Up
+    LAYER_NAME="Dynatrace_Layer_${RUNTIME}"
+    
+    # 4b. Get Layer Download Location
+    # Use the clean SOURCE_ARN directly.
+    LAYER_VERSION_INFO=$(aws lambda get-layer-version-by-arn --arn "$SOURCE_ARN")
+    
+    LAYER_LOCATION=$(echo "$LAYER_VERSION_INFO" | jq -r '.Content.Location')
 
-    # push the dynatrace provided layer to GDS S3
-    S3=`aws s3api put-object \
-    --bucket $BUCKET_NAME \
-    --key $LAYER_NAME.zip \
-    --body /tmp/layer.zip`
-    VERSION=`echo $S3 | jq .VersionId -r`
-
-    # Sign the layer
-    SIGNING_JOB=`aws signer start-signing-job \
-    --source "s3={bucketName=$BUCKET_NAME,key=$LAYER_NAME.zip,version=$VERSION}" \
-    --destination "s3={bucketName=$BUCKET_NAME,prefix=signed/$LAYER_NAME}" \
-    --profile-name $SIGNING_PROFILE`
-
-    JOB_ID=`echo $SIGNING_JOB | jq '.jobId' -r`
-
-    aws signer wait successful-signing-job --job-id $JOB_ID
-    SIGNING_JOB=`aws signer describe-signing-job --job-id $JOB_ID`
-
-    SIGNED_KEY=`echo $SIGNING_JOB | jq '.signedObject.s3.key' -r`
-    SIGNED_BUCKET=`echo $SIGNING_JOB | jq '.signedObject.s3.bucketName' -r`
-
-    # publish the new layer
-    LAYER_VERSION=`aws lambda publish-layer-version \
-    --layer-name $LAYER_NAME \
-    --content S3Bucket=$SIGNED_BUCKET,S3Key=$SIGNED_KEY`
-
-    VERSION_NUMBER=`echo $LAYER_VERSION | jq '.Version' -r`
-
-    aws lambda add-layer-version-permission \
-    --layer-name $LAYER_NAME \
-    --version-number $VERSION_NUMBER \
-    --statement-id DI_ORG \
-    --action lambda:GetLayerVersion \
-    --principal '*' \
-    --organization-id o-dpp53lco28 > /dev/null
-
-    LAYER_VERSION_ARN=`echo $LAYER_VERSION | jq '.LayerVersionArn' -r`
-
-    if [ $RUNTIME = 'nodejs' ]
-    then
-        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".NODEJS_LAYER = \"$LAYER_VERSION_ARN\""`
-        PROD_DYNATRACE_SECRETS=`echo $PROD_DYNATRACE_SECRETS | jq ".NODEJS_LAYER = \"$LAYER_VERSION_ARN\""`
-    elif [ $RUNTIME = 'java' ]
-    then
-        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".JAVA_LAYER = \"$LAYER_VERSION_ARN\""`
-        PROD_DYNATRACE_SECRETS=`echo $PROD_DYNATRACE_SECRETS | jq ".JAVA_LAYER = \"$LAYER_VERSION_ARN\""`
-    elif [ $RUNTIME = 'python' ]
-    then
-        DYNATRACE_SECRETS=`echo $DYNATRACE_SECRETS | jq ".PYTHON_LAYER = \"$LAYER_VERSION_ARN\""`
-        PROD_DYNATRACE_SECRETS=`echo $PROD_DYNATRACE_SECRETS | jq ".PYTHON_LAYER = \"$LAYER_VERSION_ARN\""`
+    if [ -z "$LAYER_LOCATION" ]; then
+        echo "ERROR: Failed to retrieve download location for $RUNTIME."
+        continue
     fi
+    
+    # 4c. Download and Upload to S3 (Unsigned)
+    echo "STATUS: Downloading layer and uploading to S3..."
+    curl -o /tmp/layer.zip "$LAYER_LOCATION"
+
+    S3_UPLOAD_INFO=$(aws s3api put-object \
+        --bucket "$BUCKET_NAME" \
+        --key "$LAYER_NAME.zip" \
+        --body /tmp/layer.zip)
+    
+    VERSION=$(echo "$S3_UPLOAD_INFO" | jq -r .VersionId)
+
+    
+    # 4d. Sign the Layer
+    echo "STATUS: Starting signing job..."
+    SIGNING_JOB=$(aws signer start-signing-job \
+        --source "S3={bucketName=$BUCKET_NAME,key=$LAYER_NAME.zip,version=$VERSION}" \
+        --destination "S3={bucketName=$BUCKET_NAME,prefix=signed/$LAYER_NAME}" \
+        --profile-name "$SIGNING_PROFILE")
+
+    JOB_ID=$(echo "$SIGNING_JOB" | jq -r '.jobId')
+
+    echo "STATUS: Waiting for signing job $JOB_ID to complete..."
+    aws signer wait successful-signing-job --job-id "$JOB_ID"
+    
+    SIGNING_JOB_DESC=$(aws signer describe-signing-job --job-id "$JOB_ID")
+
+    SIGNED_KEY=$(echo "$SIGNING_JOB_DESC" | jq -r '.signedObject.s3.key')
+    SIGNED_BUCKET=$(echo "$SIGNING_JOB_DESC" | jq -r '.signedObject.s3.bucketName')
+
+
+    # 4e. Publish the New Layer Version
+    echo "STATUS: Publishing layer $LAYER_NAME..."
+    LAYER_VERSION_OUTPUT=$(aws lambda publish-layer-version \
+        --layer-name "$LAYER_NAME" \
+        --content S3Bucket="$SIGNED_BUCKET",S3Key="$SIGNED_KEY" \
+        --compatible-runtimes "$RUNTIME") # Added: Ensures the layer is only attached to correct runtimes.
+
+    VERSION_NUMBER=$(echo "$LAYER_VERSION_OUTPUT" | jq -r '.Version')
+    LAYER_VERSION_ARN=$(echo "$LAYER_VERSION_OUTPUT" | jq -r '.LayerVersionArn')
+
+    
+    # 4f. Add Permissions (Grant organizational access)
+    echo "STATUS: Granting layer permissions..."
+    aws lambda add-layer-version-permission \
+        --layer-name "$LAYER_NAME" \
+        --version-number "$VERSION_NUMBER" \
+        --statement-id DI_ORG \
+        --action lambda:GetLayerVersion \
+        --principal '*' \
+        --organization-id y-xxxxx > /dev/null
+
+
+    # 4g. Update Secrets Manager Variables
+    echo "STATUS: Updating secrets with new ARN: $LAYER_VERSION_ARN"
+    
+    # Rationale: Uses jq --arg to safely inject the ARN string into the JSON update without shell breaking errors.
+    if [ "$RUNTIME" = 'nodejs' ]; then
+        DYNATRACE_SECRETS=$(echo "$DYNATRACE_SECRETS" | jq --arg arn "$LAYER_VERSION_ARN" '.NODEJS_LAYER = $arn')
+        PROD_DYNATRACE_SECRETS=$(echo "$PROD_DYNATRACE_SECRETS" | jq --arg arn "$LAYER_VERSION_ARN" '.NODEJS_LAYER = $arn')
+    elif [ "$RUNTIME" = 'java' ]; then
+        DYNATRACE_SECRETS=$(echo "$DYNATRACE_SECRETS" | jq --arg arn "$LAYER_VERSION_ARN" '.JAVA_LAYER = $arn')
+        PROD_DYNATRACE_SECRETS=$(echo "$PROD_DYNATRACE_SECRETS" | jq --arg arn "$LAYER_VERSION_ARN" '.JAVA_LAYER = $arn')
+    elif [ "$RUNTIME" = 'python' ]; then
+        DYNATRACE_SECRETS=$(echo "$DYNATRACE_SECRETS" | jq --arg arn "$LAYER_VERSION_ARN" '.PYTHON_LAYER = $arn')
+        PROD_DYNATRACE_SECRETS=$(echo "$PROD_DYNATRACE_SECRETS" | jq --arg arn "$LAYER_VERSION_ARN" '.PYTHON_LAYER = $arn')
+    fi
+
 done
 
-echo $DYNATRACE_SECRETS > tmp.json
 
-# aws secretsmanager put-secret-value --secret-id DynatraceNonProductionVariables --secret-string file://tmp.json > /dev/null
+# --- 5. Final Secrets Manager Update (UNCOMMENT TO PUSH CHANGES) ---
 
-echo $PROD_DYNATRACE_SECRETS > tmp.json
-# aws secretsmanager put-secret-value --secret-id DynatraceProductionVariables --secret-string file://tmp.json > /dev/null
+echo "--- FINAL SECRETS UPDATE ---"
 
-rm -f tmp.json
+# Save Non-Production variables
+echo "$DYNATRACE_SECRETS" > tmp_nonprod.json
+# Rationale: Uses distinct filenames (tmp_nonprod/tmp_prod) to prevent accidental data corruption.
+# aws secretsmanager put-secret-value --secret-id DynatraceNonProductionVariables --secret-string file://tmp_nonprod.json > /dev/null
+echo "STATUS: Non-Production secret file ready at tmp_nonprod.json (uncomment AWS command to deploy)"
+
+
+# Save Production variables
+echo "$PROD_DYNATRACE_SECRETS" > tmp_prod.json
+# aws secretsmanager put-secret-value --secret-id DynatraceProductionVariables --secret-string file://tmp_prod.json > /dev/null
+echo "STATUS: Production secret file ready at tmp_prod.json (uncomment AWS command to deploy)"
+
+
+# --- 6. Cleanup ---
+rm -f /tmp/layer.zip tmp_nonprod.json tmp_prod.json
+
+echo "STATUS: Script finished successfully."
