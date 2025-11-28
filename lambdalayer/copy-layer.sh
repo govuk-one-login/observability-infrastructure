@@ -101,8 +101,8 @@ do
     # 4d. Sign the Layer
     echo "STATUS: Starting signing job..."
     SIGNING_JOB=$(aws signer start-signing-job \
-        --source "S3={bucketName=$BUCKET_NAME,key=$LAYER_NAME.zip,version=$VERSION}" \
-        --destination "S3={bucketName=$BUCKET_NAME,prefix=signed/$LAYER_NAME}" \
+        --source "s3={bucketName=$BUCKET_NAME,key=$LAYER_NAME.zip,version=$VERSION}" \
+        --destination "s3={bucketName=$BUCKET_NAME,prefix=signed/$LAYER_NAME}" \
         --profile-name "$SIGNING_PROFILE")
 
     JOB_ID=$(echo "$SIGNING_JOB" | jq -r '.jobId')
