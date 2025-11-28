@@ -34,13 +34,16 @@ get_secret_json DynatraceProductionVariables PROD_DYNATRACE_SECRETS
 DT_BASE_URL=$(echo "$DYNATRACE_SECRETS" | jq -r ".DT_CONNECTION_BASE_URL")
 
 
-# --- 3. Dynatrace Layer ARN Retrieval (API MIGRATION AND PARSING FIX) ---
+# --- 3. Dynatrace Layer ARN Retrieval (GOVERNANCE FIX APPLIED) ---
 
-echo "STATUS: Fetching Dynatrace layer ARNs from new API endpoint: $DT_BASE_URL/api/v1/deployment/lambda/layer"
+# CRITICAL FIX: Explicitly request layer from an authorized region (eu-west-2 in this case).
+TARGET_REGION="eu-west-2" 
 
-# Updated curl URL to use the new API and filter by "withCollector=included".
-# The entire command is designed to prevent the previous parsing error.
-LAYER_DATA=$(curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer?withCollector=included" \
+echo "STATUS: Fetching Dynatrace layer ARNs from authorized region: $TARGET_REGION"
+
+# Updated curl URL to include the '&region=$TARGET_REGION' query parameter.
+# Rationale: Prevents failure from the Organization's Region Opt-out policy (e.g., ap-southeast-3 block).
+LAYER_DATA=$(curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer?withCollector=included&region=$TARGET_REGION" \
   -H "accept: application/json; charset=utf-8" \
   -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN" | \
   jq -r '
@@ -48,14 +51,13 @@ LAYER_DATA=$(curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer?withColle
     # Filter for layers that INCLUDE the collector
     select(.withCollector == "included") |
     (
-      # NEW OUTPUT FORMAT: FULL_ARN | RUNTIME (e.g., arn:aws:lambda:...|python)
-      # Rationale: The pipe "|" is a reliable delimiter for the Bash loop, fixing the previous parsing bug.
+      # NEW OUTPUT FORMAT: FULL_ARN | RUNTIME 
       .arn + "|" + .techType
     )
   ')
 
 if [ -z "$LAYER_DATA" ]; then
-    echo "ERROR: No Dynatrace layers found or API call failed."
+    echo "ERROR: No Dynatrace layers found in $TARGET_REGION or API call failed."
     exit 1
 fi
 
