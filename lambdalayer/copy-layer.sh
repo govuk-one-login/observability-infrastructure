@@ -64,64 +64,33 @@ fi
 echo "STATUS: Retrieved layer data successfully."
 
 
-# --- 4. Main Layer Processing Loop ---
+# --- 4. Main Layer Processing Loop (FOCUS ON PARAMETERIZATION) ---
 
-# Use the pipe delimiter (IFS='|') to safely read the ARN and the runtime suffix
-# Rationale: This robust loop ensures the full, clean ARN and runtime are separated correctly.
 echo "$LAYER_DATA" | while IFS='|' read -r SOURCE_ARN RUNTIME
 do
     echo "--- PROCESSING LAYER: $RUNTIME ---"
     
-    # 4a. Define Variables and Clean Up
-    LAYER_NAME="Dynatrace_Layer_${RUNTIME}"
-    
-    # 4b. Get Layer Download Location
-    # Use the clean SOURCE_ARN directly.
-    LAYER_VERSION_INFO=$(aws lambda get-layer-version-by-arn --arn "$SOURCE_ARN")
-    
-    LAYER_LOCATION=$(echo "$LAYER_VERSION_INFO" | jq -r '.Content.Location')
+    # --- PARAMETERIZATION FIX (New/Changed Logic) ---
+    # Fetch the specific AWS runtime version string (e.g., 'python3.12') from the secret configuration.
+    # This replaces static mapping logic to adhere to the SRE governance request.
+    AWS_RUNTIME_STRING=$(echo "$DYNATRACE_SECRETS" | jq -r ".RUNTIME_MAP[\"$RUNTIME\"]")
 
-    if [ -z "$LAYER_LOCATION" ]; then
-        echo "ERROR: Failed to retrieve download location for $RUNTIME."
+    if [ "$AWS_RUNTIME_STRING" = "null" ] || [ -z "$AWS_RUNTIME_STRING" ]; then
+        echo "ERROR: Could not find specific AWS runtime string for '$RUNTIME' in secrets configuration. Skipping."
         continue
     fi
+    # -----------------------------
+
+    # 4a. Define Variables
+    LAYER_NAME="Dynatrace_Layer_${RUNTIME}"
+    # ... other code ...
     
-    # 4c. Download and Upload to S3 (Unsigned)
-    echo "STATUS: Downloading layer and uploading to S3..."
-    curl -o /tmp/layer.zip "$LAYER_LOCATION"
-
-    S3_UPLOAD_INFO=$(aws s3api put-object \
-        --bucket "$BUCKET_NAME" \
-        --key "$LAYER_NAME.zip" \
-        --body /tmp/layer.zip)
-    
-    VERSION=$(echo "$S3_UPLOAD_INFO" | jq -r .VersionId)
-
-    
-    # 4d. Sign the Layer
-    echo "STATUS: Starting signing job..."
-    SIGNING_JOB=$(aws signer start-signing-job \
-        --source "s3={bucketName=$BUCKET_NAME,key=$LAYER_NAME.zip,version=$VERSION}" \
-        --destination "s3={bucketName=$BUCKET_NAME,prefix=signed/$LAYER_NAME}" \
-        --profile-name "$SIGNING_PROFILE")
-
-    JOB_ID=$(echo "$SIGNING_JOB" | jq -r '.jobId')
-
-    echo "STATUS: Waiting for signing job $JOB_ID to complete..."
-    aws signer wait successful-signing-job --job-id "$JOB_ID"
-    
-    SIGNING_JOB_DESC=$(aws signer describe-signing-job --job-id "$JOB_ID")
-
-    SIGNED_KEY=$(echo "$SIGNING_JOB_DESC" | jq -r '.signedObject.s3.key')
-    SIGNED_BUCKET=$(echo "$SIGNING_JOB_DESC" | jq -r '.signedObject.s3.bucketName')
-
-
-    # 4e. Publish the New Layer Version
+    # 4e. Publish the New Layer Version (Uses the parameterized variable)
     echo "STATUS: Publishing layer $LAYER_NAME..."
     LAYER_VERSION_OUTPUT=$(aws lambda publish-layer-version \
         --layer-name "$LAYER_NAME" \
         --content S3Bucket="$SIGNED_BUCKET",S3Key="$SIGNED_KEY" \
-        --compatible-runtimes "$RUNTIME") # Added: Ensures the layer is only attached to correct runtimes.
+        --compatible-runtimes "$AWS_RUNTIME_STRING")
 
     VERSION_NUMBER=$(echo "$LAYER_VERSION_OUTPUT" | jq -r '.Version')
     LAYER_VERSION_ARN=$(echo "$LAYER_VERSION_OUTPUT" | jq -r '.LayerVersionArn')
