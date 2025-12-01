@@ -40,6 +40,9 @@ if [ -z "$API_RESPONSE" ]; then
     exit 1
 fi
 
+echo "DEBUG: Raw API Response for Version Check:"
+echo "$API_RESPONSE" | jq .
+
 # 2a. Determine the unique list of ALL supported AWS runtimes from the API response.
 # This list forms the final 'compatible-runtimes' array for publishing.
 APPROVED_RUNTIME_LIST=$(echo "$API_RESPONSE" | jq -r --arg min_version "$MIN_AGENT_VERSION" '
