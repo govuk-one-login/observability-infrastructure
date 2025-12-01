@@ -5,7 +5,7 @@ set -eu
 # --- 1. CONFIGURATION LOADING (DYNAMIC) ---
 
 # Define the minimum supported Dynatrace Agent version based on the 12-month support window.
-# Rationale: This value should be externally managed in a file (e.g., min_agent_version.txt).
+# Rationale: This value is externally managed for governance flexibility.
 MIN_AGENT_VERSION=$(cat ./lambdalayer/min_agent_version.txt) 
 
 # Fetch core configuration secrets
@@ -23,7 +23,7 @@ DT_SECRETS_NONPROD=$(echo "$DT_SECRETS_NONPROD_RAW" | jq -r ".SecretString | fro
 DT_BASE_URL=$(echo "$DT_SECRETS_NONPROD" | jq -r ".DT_CONNECTION_BASE_URL")
 
 
-# --- 2. Dynatrace Layer ARN Retrieval (DYNAMIC RUNTIME DISCOVERY & VERSION CHECK) ---
+# --- 2. Dynatrace Layer ARN Retrieval (API MIGRATION & GOVERNANCE CHECK) ---
 
 # Governance Fix: Explicitly request layer from an authorized region (eu-west-2 assumed).
 TARGET_REGION="eu-west-2" 
@@ -40,29 +40,27 @@ if [ -z "$API_RESPONSE" ]; then
     exit 1
 fi
 
-echo "DEBUG: Raw API Response for Version Check:"
-echo "$API_RESPONSE" | jq .
-
-# 2a. Determine the unique list of ALL supported AWS runtimes from the API response.
+# 2a. Determine the unique list of ALL supported AWS runtimes.
 # This list forms the final 'compatible-runtimes' array for publishing.
 APPROVED_RUNTIME_LIST=$(echo "$API_RESPONSE" | jq -r --arg min_version "$MIN_AGENT_VERSION" '
     .arns[] | 
-    # CRITICAL: Filters to include only the full Dynatrace layer package that contains the Log Collector component AND enforce the minimum agent version.
-    select(.withCollector == "included" and .agentVersion >= $min_version and .supportedRuntimes != null) | 
+    # CRITICAL: Filters to include only the full Dynatrace layer package AND enforce the minimum agent version.
+    select(.withCollector == "included" and .supportedRuntimes != null and
+           (.arn | match("OneAgent_([0-9]+)_([0-9]+)").string | gsub("_"; ".") ) >= $min_version) | 
     .supportedRuntimes[]
     ' | sort -u | jq -R . | jq -cs .)
     
 if [ -z "$APPROVED_RUNTIME_LIST" ] || [ "$APPROVED_RUNTIME_LIST" = "[]" ]; then
-    echo "ERROR: No approved AWS runtimes found for publishing (either API returned no data, or agent versions are too old). Exit."
+    echo "ERROR: No approved AWS runtimes found for publishing (Versions below $MIN_AGENT_VERSION). Exit."
     exit 1
 fi
 
 # 2b. Extract the specific ARNs we need to process (one per technology type).
 # We apply the same version filter here to ensure we only proceed with compliant ARNs.
 LAYER_DATA=$(echo "$API_RESPONSE" | jq -r --arg min_version "$MIN_AGENT_VERSION" '
-    # CRITICAL: Filters to include only the full Dynatrace layer package that contains the Log Collector component AND enforce the minimum agent version.
     .arns[] |
-    select(.withCollector == "included" and .agentVersion >= $min_version) |
+    select(.withCollector == "included" and 
+           (.arn | match("OneAgent_([0-9]+)_([0-9]+)").string | gsub("_"; ".") ) >= $min_version) |
     (.arn + "|" + .techType)
     ')
 
