@@ -2,10 +2,9 @@
 # Exit immediately if a command exits with a non-zero status or a variable is unset.
 set -eu
 
-# --- 1. CONFIGURATION LOADING (DYNAMIC) ---
+# --- 1. CONFIGURATION LOADING ---
 
-# Define the minimum supported Dynatrace Agent version based on the 12-month support window.
-# Rationale: This value should be externally managed in a file (e.g., min_agent_version.txt).
+# Define the minimum supported Dynatrace Agent version.
 MIN_AGENT_VERSION=$(cat ./lambdalayer/min_agent_version.txt) 
 
 # Fetch core configuration secrets
@@ -17,20 +16,19 @@ DYNATRACE_PAAS_TOKEN=$(echo "$DT_CONFIG_JSON" | jq -r ".TOKEN")
 BUCKET_NAME=$(echo "$DT_CONFIG_JSON" | jq -r ".S3_BUCKET")
 SIGNING_PROFILE=$(echo "$DT_CONFIG_JSON" | jq -r ".SIGNING_PROFILE")
 
-# Fetch NONPROD secrets (used for DT_BASE_URL)
 DT_SECRETS_NONPROD_RAW=$(aws secretsmanager get-secret-value --secret-id DynatraceNonProductionVariables)
 DT_SECRETS_NONPROD=$(echo "$DT_SECRETS_NONPROD_RAW" | jq -r ".SecretString | fromjson")
 DT_BASE_URL=$(echo "$DT_SECRETS_NONPROD" | jq -r ".DT_CONNECTION_BASE_URL")
 
 
-# --- 2. Dynatrace Layer ARN Retrieval (DYNAMIC RUNTIME DISCOVERY & VERSION CHECK) ---
+# --- 2. Dynatrace Layer ARN Retrieval (API MIGRATION & VERSION CHECK) ---
 
 # Governance Fix: Explicitly request layer from an authorized region (eu-west-2 assumed).
 TARGET_REGION="eu-west-2" 
 
 echo "STATUS: Fetching Dynatrace layers and supported runtimes from $TARGET_REGION"
 
-# Get all required data in one API call.
+# CRITICAL: Use the new /api/v1/deployment/lambda/layer endpoint.
 API_RESPONSE=$(curl -sX GET "$DT_BASE_URL/api/v1/deployment/lambda/layer?withCollector=included&region=$TARGET_REGION" \
   -H "accept: application/json; charset=utf-8" \
   -H "Authorization: Api-Token $DYNATRACE_PAAS_TOKEN")
@@ -40,29 +38,21 @@ if [ -z "$API_RESPONSE" ]; then
     exit 1
 fi
 
-echo "DEBUG: Raw API Response for Version Check:"
-echo "$API_RESPONSE" | jq .
-
-# 2a. Determine the unique list of ALL supported AWS runtimes from the API response.
-# This list forms the final 'compatible-runtimes' array for publishing.
-APPROVED_RUNTIME_LIST=$(echo "$API_RESPONSE" | jq -r --arg min_version "$MIN_AGENT_VERSION" '
-    .arns[] | 
-    # CRITICAL: Filters to include only the full Dynatrace layer package that contains the Log Collector component AND enforce the minimum agent version.
-    select(.withCollector == "included" and .agentVersion >= $min_version and .supportedRuntimes != null) | 
-    .supportedRuntimes[]
-    ' | sort -u | jq -R . | jq -cs .)
+# 2a. Load the approved runtimes list (SRE Whitelist) from the local config file.
+# We trust the config file uses only lowercase prefixes (e.g., 'java17', 'nodejs20.x').
+APPROVED_RUNTIME_LIST=$(cat ./lambdalayer/runtime_config.json)
     
 if [ -z "$APPROVED_RUNTIME_LIST" ] || [ "$APPROVED_RUNTIME_LIST" = "[]" ]; then
-    echo "ERROR: No approved AWS runtimes found for publishing (either API returned no data, or agent versions are too old). Exit."
+    echo "ERROR: Approved AWS runtimes list is empty. Please populate runtime_config.json. Exit."
     exit 1
 fi
 
-# 2b. Extract the specific ARNs we need to process (one per technology type).
-# We apply the same version filter here to ensure we only proceed with compliant ARNs.
+# 2b. Extract the specific ARNs we need to process (filtering by minimum agent version).
 LAYER_DATA=$(echo "$API_RESPONSE" | jq -r --arg min_version "$MIN_AGENT_VERSION" '
-    # CRITICAL: Filters to include only the full Dynatrace layer package that contains the Log Collector component AND enforce the minimum agent version.
     .arns[] |
-    select(.withCollector == "included" and .agentVersion >= $min_version) |
+    # CRITICAL: Filters to include only layers that meet the collector and version criteria (extracted from ARN).
+    select(.withCollector == "included" and 
+           (.arn | match("OneAgent_([0-9]+)_([0-9]+)").string | gsub("_"; ".") ) >= $min_version) |
     (.arn + "|" + .techType)
     ')
 
@@ -71,7 +61,7 @@ if [ -z "$LAYER_DATA" ]; then
     exit 1
 fi
 
-echo "INFO: Approved runtimes list dynamically generated for publishing."
+echo "INFO: Approved runtimes list (from local config) loaded successfully for publishing."
 
 
 # --- 3. Main Layer Processing Loop ---
@@ -80,10 +70,26 @@ echo "$LAYER_DATA" | while IFS='|' read -r SOURCE_ARN RUNTIME
 do
     echo "--- PROCESSING LAYER: $RUNTIME ---"
     
-    # 3a. Define Variables
-    LAYER_NAME="Dynatrace_Layer_${RUNTIME}"
+    # CRITICAL FIX: Standardize the API's inconsistent capitalization to lowercase (java, nodejs).
+    RUNTIME_LOWER=$(echo "$RUNTIME" | tr '[:upper:]' '[:lower:]')
+
+    # 3a. Define Variables (Extract full descriptive name, retaining architecture)
+    VERSION_WITH_ARCH=$(echo "$SOURCE_ARN" | sed 's/^.*layer:\(.*\):[0-9]*$/\1/')
+    LAYER_NAME=$(echo "$VERSION_WITH_ARCH" | sed 's/_\(x86\|arm\)$//')
     
-    # 3b. Get Layer Download Location 
+    # 3b. FILTER: Create a runtime list specific to the current language (e.g., only pythonx).
+    # This ensures the Compatible Runtimes column is clean and specific.
+    COMPATIBILITY_LIST=$(echo "$APPROVED_RUNTIME_LIST" | jq -r --arg current_runtime "$RUNTIME_LOWER" '
+        .[] | select(startswith($current_runtime))
+    ' | jq -R . | jq -cs .)
+    
+    if [ "$COMPATIBILITY_LIST" = "[]" ]; then
+        echo "WARNING: No approved runtimes found for $RUNTIME. Skipping publish."
+        continue
+    fi
+
+
+    # 3c. Get Layer Download Location 
     LAYER_VERSION_INFO=$(aws lambda get-layer-version-by-arn --arn "$SOURCE_ARN")
     
     LAYER_LOCATION=$(echo "$LAYER_VERSION_INFO" | jq -r '.Content.Location')
@@ -93,7 +99,7 @@ do
         continue
     fi
     
-    # 3c. Download and Upload to S3
+    # 3d. Download and Upload to S3
     echo "STATUS: Downloading layer and uploading to S3..."
     curl -o /tmp/layer.zip "$LAYER_LOCATION"
 
@@ -105,7 +111,7 @@ do
     VERSION=$(echo "$S3_UPLOAD_INFO" | jq .VersionId -r)
 
     
-    # 3d. Sign the Layer (Casing fixed)
+    # 3e. Sign the Layer (Casing fixed)
     echo "STATUS: Starting signing job..."
     SIGNING_JOB=$(aws signer start-signing-job \
         --source "s3={bucketName=$BUCKET_NAME,key=$LAYER_NAME.zip,version=$VERSION}" \
@@ -123,21 +129,21 @@ do
     SIGNED_BUCKET=$(echo "$SIGNING_JOB_DESC" | jq -r '.signedObject.s3.bucketName')
 
 
-    # 3e. Publish the New Layer Version
+    # 3f. Publish the New Layer Version
     echo "STATUS: Publishing layer $LAYER_NAME..."
     
-    # CRITICAL: Pass the dynamically generated list of approved runtimes.
+    # CRITICAL: Pass the filtered, specific list (COMPATIBILITY_LIST) to the AWS command.
     LAYER_VERSION_OUTPUT=$(aws lambda publish-layer-version \
         --layer-name "$LAYER_NAME" \
         --content S3Bucket="$SIGNED_BUCKET",S3Key="$SIGNED_KEY" \
-        --compatible-runtimes "$APPROVED_RUNTIME_LIST") 
+        --compatible-runtimes "$COMPATIBILITY_LIST") 
 
     VERSION_NUMBER=$(echo "$LAYER_VERSION_OUTPUT" | jq -r '.Version')
     LAYER_VERSION_ARN=$(echo "$LAYER_VERSION_OUTPUT" | jq -r '.LayerVersionArn')
 
     echo "INFO: New published ARN for $RUNTIME: $LAYER_VERSION_ARN"
     
-    # 3f. Add Permissions (Grant organizational access)
+    # 3g. Add Permissions (Grant organizational access)
     echo "STATUS: Granting layer permissions..."
     aws lambda add-layer-version-permission \
         --layer-name "$LAYER_NAME" \
@@ -145,7 +151,7 @@ do
         --statement-id DI_ORG \
         --action lambda:GetLayerVersion \
         --principal '*' \
-        --organization-id y-xxxxx > /dev/null
+        --organization-id o-dpp53lco28 > /dev/null
 
 done
 
