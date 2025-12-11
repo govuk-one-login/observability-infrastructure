@@ -38,8 +38,7 @@ if [ -z "$API_RESPONSE" ]; then
     exit 1
 fi
 
-# 2a. Load the approved runtimes list (SRE Whitelist) from the local config file.
-# We trust the config file uses only lowercase prefixes (e.g., 'java17', 'nodejs20.x').
+# 2a. Load the approved runtimes list (SRE Whitelist)
 APPROVED_RUNTIME_LIST=$(cat ./lambdalayer/runtime_config.json)
     
 if [ -z "$APPROVED_RUNTIME_LIST" ] || [ "$APPROVED_RUNTIME_LIST" = "[]" ]; then
@@ -70,16 +69,13 @@ echo "$LAYER_DATA" | while IFS='|' read -r SOURCE_ARN RUNTIME
 do
     echo "--- PROCESSING LAYER: $RUNTIME ---"
     
-    # CRITICAL FIX: Standardize the API's inconsistent capitalization to lowercase (java, nodejs).
-    RUNTIME_LOWER=$(echo "$RUNTIME" | tr '[:upper:]' '[:lower:]')
-
-    # 3a. Define Variables (Extract full descriptive name, retaining architecture)
-    VERSION_WITH_ARCH=$(echo "$SOURCE_ARN" | sed 's/^.*layer:\(.*\):[0-9]*$/\1/')
-    LAYER_NAME=$(echo "$VERSION_WITH_ARCH" | sed 's/_\(x86\|arm\)$//')
+    # 3a. Define Variables (FINAL FIX: Extract full descriptive name, RETAINING ARCHITECTURE SUFFIX)
+    # This strips the AWS ARN prefix and the final version number (:1, :2, etc.), KEEPING THE ARCHITECTURE.
+    LAYER_NAME=$(echo "$SOURCE_ARN" | sed 's/^.*layer:\(.*\):[0-9]*$/\1/')
     
     # 3b. FILTER: Create a runtime list specific to the current language (e.g., only pythonx).
     # This ensures the Compatible Runtimes column is clean and specific.
-    COMPATIBILITY_LIST=$(echo "$APPROVED_RUNTIME_LIST" | jq -r --arg current_runtime "$RUNTIME_LOWER" '
+    COMPATIBILITY_LIST=$(echo "$APPROVED_RUNTIME_LIST" | jq -r --arg current_runtime "$RUNTIME" '
         .[] | select(startswith($current_runtime))
     ' | jq -R . | jq -cs .)
     
