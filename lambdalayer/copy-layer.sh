@@ -16,12 +16,13 @@ DYNATRACE_PAAS_TOKEN=$(echo "$DT_CONFIG_JSON" | jq -r ".TOKEN")
 BUCKET_NAME=$(echo "$DT_CONFIG_JSON" | jq -r ".S3_BUCKET")
 SIGNING_PROFILE=$(echo "$DT_CONFIG_JSON" | jq -r ".SIGNING_PROFILE")
 
+# Fetch NONPROD secrets (used for DT_BASE_URL)
 DT_SECRETS_NONPROD_RAW=$(aws secretsmanager get-secret-value --secret-id DynatraceNonProductionVariables)
 DT_SECRETS_NONPROD=$(echo "$DT_SECRETS_NONPROD_RAW" | jq -r ".SecretString | fromjson")
 DT_BASE_URL=$(echo "$DT_SECRETS_NONPROD" | jq -r ".DT_CONNECTION_BASE_URL")
 
 
-# --- 2. Dynatrace Layer ARN Retrieval (API MIGRATION & VERSION CHECK) ---
+# --- 2. Dynatrace Layer ARN Retrieval (API MIGRATION & GOVERNANCE CHECK) ---
 
 # Governance Fix: Explicitly request layer from an authorized region (eu-west-2 assumed).
 TARGET_REGION="eu-west-2" 
@@ -38,7 +39,7 @@ if [ -z "$API_RESPONSE" ]; then
     exit 1
 fi
 
-# 2a. Load the approved runtimes list (SRE Whitelist)
+# 2a. Load the approved runtimes list (SRE Whitelist) from the local config file.
 APPROVED_RUNTIME_LIST=$(cat ./lambdalayer/runtime_config.json)
     
 if [ -z "$APPROVED_RUNTIME_LIST" ] || [ "$APPROVED_RUNTIME_LIST" = "[]" ]; then
@@ -69,13 +70,17 @@ echo "$LAYER_DATA" | while IFS='|' read -r SOURCE_ARN RUNTIME
 do
     echo "--- PROCESSING LAYER: $RUNTIME ---"
     
-    # 3a. Define Variables (FINAL FIX: Extract full descriptive name, RETAINING ARCHITECTURE SUFFIX)
-    # This strips the AWS ARN prefix and the final version number (:1, :2, etc.), KEEPING THE ARCHITECTURE.
+    # CRITICAL FIX 1: Standardize the API's inconsistent capitalization to lowercase (java, nodejs).
+    RUNTIME_LOWER=$(echo "$RUNTIME" | tr '[:upper:]' '[:lower:]')
+    
+    # 3a. Define Variables (FINAL FIX: Extract full descriptive name, RETAINING ARCHITECTURE)
+    # This strips the AWS ARN prefix and the final version number (:1, :2, etc.), keeping the architecture suffix.
+    # The final LAYER_NAME will now include the architecture tag (e.g., _x86 or _arm).
     LAYER_NAME=$(echo "$SOURCE_ARN" | sed 's/^.*layer:\(.*\):[0-9]*$/\1/')
     
     # 3b. FILTER: Create a runtime list specific to the current language (e.g., only pythonx).
     # This ensures the Compatible Runtimes column is clean and specific.
-    COMPATIBILITY_LIST=$(echo "$APPROVED_RUNTIME_LIST" | jq -r --arg current_runtime "$RUNTIME" '
+    COMPATIBILITY_LIST=$(echo "$APPROVED_RUNTIME_LIST" | jq -r --arg current_runtime "$RUNTIME_LOWER" '
         .[] | select(startswith($current_runtime))
     ' | jq -R . | jq -cs .)
     
