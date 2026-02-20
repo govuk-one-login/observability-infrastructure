@@ -144,6 +144,7 @@ Resources:
       # Using Environment instead of Firehose Name to break Circular Dependency
       LogGroupName: !Sub /aws/kinesisfirehose/metric-stream-${Environment}-errors
       RetentionInDays: 7
+      KmsKeyId: !GetAtt KMSKey.Arn
 
   FailedDataBucketPolicy:
     Type: AWS::IAM::Policy
