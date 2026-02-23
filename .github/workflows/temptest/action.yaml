@@ -96,8 +96,8 @@ runs:
       - name: running pre-commit
         shell: bash
         run: |
-          # ./mk-test-file.sh
-          git config set diff.wserrorhighlight all
+          git config --global diff.wserrorhighlight all
+          git config --global color.ui always
           echo
           echo "Running:"
           echo "pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml"
