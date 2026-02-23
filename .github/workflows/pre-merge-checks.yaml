@@ -49,5 +49,3 @@ jobs:
           all-files: true
           show-diff: true
           fail-fast: false
-
-(Line: 19, Col: 15): Expected format {org}/{repo}[/path]@ref. Actual 'govuk-one-login/github-actions/code-quality/check-linting'
