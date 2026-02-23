@@ -32,40 +32,40 @@ runs:
     using: composite
     steps:
       # - uses: actions/checkout@v6
-      - name: "Reusable: Testing inputs"
-        env:
-          REUSABLE: true
-          ALLFILES: ${{ inputs.all-files == 'true' }}
-        shell: bash
-        run: |
-          echo "REUSABLE='${REUSABLE}'"
-          echo "ALLFILES='${ALLFILES}'"
-          echo "inputs.all-files: ${{ inputs.all-files }}"
-          echo "inputs.show-diff: ${{ inputs.show-diff }}"
-          echo "inputs.fail-fast: ${{ inputs.fail-fast }}"
-          echo
+      # - name: "Reusable: Testing inputs"
+      #   env:
+      #     REUSABLE: true
+      #     ALLFILES: ${{ inputs.all-files == 'true' }}
+      #   shell: bash
+      #   run: |
+      #     echo "REUSABLE='${REUSABLE}'"
+      #     echo "ALLFILES='${ALLFILES}'"
+      #     echo "inputs.all-files: ${{ inputs.all-files }}"
+      #     echo "inputs.show-diff: ${{ inputs.show-diff }}"
+      #     echo "inputs.fail-fast: ${{ inputs.fail-fast }}"
+      #     echo
+      #
+      # - name: Check all-files
+      #   if: ${{ inputs.all-files == 'true' }}
+      #   shell: bash
+      #   run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --all-files" >> $GITHUB_ENV
+      #
+      # - name: Check show-diff
+      #   if: ${{ inputs.show-diff == 'true' }}
+      #   shell: bash
+      #   run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --show-diff-on-failure" >> $GITHUB_ENV
+      #
+      # - name: Check fail-fast
+      #   if: ${{ inputs.fail-fast == 'true' }}
+      #   shell: bash
+      #   run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --fail-fast" >> $GITHUB_ENV
 
-      - name: Check all-files
-        if: ${{ inputs.all-files == 'true' }}
-        shell: bash
-        run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --all-files" >> $GITHUB_ENV
-
-      - name: Check show-diff
-        if: ${{ inputs.show-diff == 'true' }}
-        shell: bash
-        run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --show-diff-on-failure" >> $GITHUB_ENV
-
-      - name: Check fail-fast
-        if: ${{ inputs.fail-fast == 'true' }}
-        shell: bash
-        run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --fail-fast" >> $GITHUB_ENV
-
-      - name: Check pre-commit-args
-        shell: bash
-        run: |
-          echo "PRE_COMMIT_ARGS='${PRE_COMMIT_ARGS}'"
-          declare -p PRE_COMMIT_ARGS
-          echo
+      # - name: Check pre-commit-args
+      #   shell: bash
+      #   run: |
+      #     echo "PRE_COMMIT_ARGS='${PRE_COMMIT_ARGS}'"
+      #     declare -p PRE_COMMIT_ARGS
+      #     echo
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -73,6 +73,9 @@ runs:
           python-version: ${{ inputs.python-version }}
           # TODO? https://towardsdev.com/speed-up-you-github-actions-by-caching-you-python-packages-install-31127de213ae
           cache: 'pip'
+          cache-dependency-path: ~/.cache/pre-commit
+          pip-install: pre-commit checkov yamllint codespell cfn-lint jschema-to-python sarif-om junit-xml pydot
+
 
       - name: Cache pre-commit hooks
         # https://pragmaticnotes.hashnode.dev/running-pre-commit-in-a-reusable-github-actions-workflow-with-caching
@@ -93,7 +96,7 @@ runs:
       - name: running pre-commit
         shell: bash
         run: |
-          ./mk-test-file.sh
+          # ./mk-test-file.sh
           git config set diff.wserrorhighlight all
           echo
           echo "Running:"
