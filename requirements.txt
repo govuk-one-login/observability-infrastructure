@@ -1,0 +1,21 @@
+
+pre-commit
+
+cfn-lint
+
+checkov
+
+codespell
+
+gitlint
+# cfn-lint requirements:
+jschema-to-python
+junit-xml
+proselint
+pydot
+requests>=2.28
+sarif-om
+
+shellcheck-py
+
+tomli
