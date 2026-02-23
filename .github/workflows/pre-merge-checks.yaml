@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Run cfn-lint
-        uses: govuk-one-login/github-actions/code-quality/check-linting@v1
+        uses: govuk-one-login/github-actions/code-quality/check-linting@main
         with:
           run-cfn-lint: false # until README.md is fixed
           run-prettier: false
@@ -43,7 +43,10 @@ jobs:
   pre-commit-all:
     runs-on: ubuntu-slim
     steps:
+      - uses: actions/checkout@v6
+        name: Checkout repo
       - uses: ./.github/workflows/temptest
+        name: Run pre-commit with all tests from alternative config file
         with:
           python-version: 3.13                             # Optional, defaults to '3.13'
           all-files: true
