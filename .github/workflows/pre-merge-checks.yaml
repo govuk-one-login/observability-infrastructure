@@ -26,15 +26,16 @@ jobs:
     name: Run Checkov
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
       - uses: actions/checkout@v6
-      - name: Run Checkov
-        uses: govuk-one-login/org-github-actions/checkov@v1
+        name: Checkout repo
+      - uses: govuk-one-login/org-github-actions/checkov@v1
+        name: Run Checkov
 
   pre-commit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        name: Checkout repo
       - uses: govuk-one-login/org-github-actions/pre-commit@v1
         with:
           python-version: 3.13                             # Optional, defaults to '3.13'
