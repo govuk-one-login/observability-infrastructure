@@ -45,20 +45,20 @@ runs:
       #     echo "inputs.fail-fast: ${{ inputs.fail-fast }}"
       #     echo
       #
-      # - name: Check all-files
-      #   if: ${{ inputs.all-files == 'true' }}
-      #   shell: bash
-      #   run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --all-files" >> $GITHUB_ENV
-      #
-      # - name: Check show-diff
-      #   if: ${{ inputs.show-diff == 'true' }}
-      #   shell: bash
-      #   run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --show-diff-on-failure" >> $GITHUB_ENV
-      #
-      # - name: Check fail-fast
-      #   if: ${{ inputs.fail-fast == 'true' }}
-      #   shell: bash
-      #   run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --fail-fast" >> $GITHUB_ENV
+      - name: Check all-files
+        if: ${{ inputs.all-files == 'true' }}
+        shell: bash
+        run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --all-files" >> $GITHUB_ENV
+
+      - name: Check show-diff
+        if: ${{ inputs.show-diff == 'true' }}
+        shell: bash
+        run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --show-diff-on-failure" >> $GITHUB_ENV
+
+      - name: Check fail-fast
+        if: ${{ inputs.fail-fast == 'true' }}
+        shell: bash
+        run: echo "PRE_COMMIT_ARGS=${PRE_COMMIT_ARGS} --fail-fast" >> $GITHUB_ENV
 
       # - name: Check pre-commit-args
       #   shell: bash
@@ -100,7 +100,7 @@ runs:
           git config set diff.wserrorhighlight all
           echo
           echo "Running:"
-          echo "pre-commit run --color always --verbose ${PRE_COMMIT_ARGS}"
+          echo "pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml"
           echo
-          pre-commit run --color always --verbose ${PRE_COMMIT_ARGS}
+          pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml
           echo
