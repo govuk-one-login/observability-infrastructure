@@ -72,22 +72,22 @@ runs:
         with:
           python-version: ${{ inputs.python-version }}
           # TODO? https://towardsdev.com/speed-up-you-github-actions-by-caching-you-python-packages-install-31127de213ae
-          cache: 'pip'
-          cache-dependency-path: ~/.cache/pre-commit
-          pip-install: pre-commit checkov yamllint codespell cfn-lint jschema-to-python sarif-om junit-xml pydot
+          # cache: 'pip'
+          # cache-dependency-path: ~/.cache/pre-commit
+          # pip-install: pre-commit checkov yamllint codespell cfn-lint jschema-to-python sarif-om junit-xml pydot
 
 
-      - name: Cache pre-commit hooks
-        # https://pragmaticnotes.hashnode.dev/running-pre-commit-in-a-reusable-github-actions-workflow-with-caching
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pre-commit
-          # key: ${{ runner.os }}-precommit-${{ hashFiles('.pre-commit-config.yaml') }}
-          key: >
-            ${{ format('pre-commit-{0}-{1}',
-            steps.setup-python.outputs.python-version,
-            hashFiles('.pre-commit-config.yaml')
-            ) }}
+      # - name: Cache pre-commit hooks
+      #   # https://pragmaticnotes.hashnode.dev/running-pre-commit-in-a-reusable-github-actions-workflow-with-caching
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.cache/pre-commit
+      #     # key: ${{ runner.os }}-precommit-${{ hashFiles('.pre-commit-config.yaml') }}
+      #     key: >
+      #       ${{ format('pre-commit-{0}-{1}',
+      #       steps.setup-python.outputs.python-version,
+      #       hashFiles('.pre-commit-config.yaml')
+      #       ) }}
 
       - name: Install pre-commit mfl using pip
         run: pip install pre-commit checkov yamllint codespell cfn-lint jschema-to-python sarif-om junit-xml pydot
