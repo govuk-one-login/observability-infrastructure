@@ -26,9 +26,9 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      # - id: end-of-file-fixer
-      # - id: trailing-whitespace
-      #   args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
       # - id: mixed-line-ending
       # - id: double-quote-string-fixer
       - id: check-executables-have-shebangs
@@ -117,3 +117,19 @@ repos:
         always_run: true
         # args: [--skip-check CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56, --quiet]
         args: [--config-file, .checkov.yaml]
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        additional_dependencies:
+          - tomli
+        args: [--config .codespellrc]
+
+  - repo: https://github.com/get-woke/woke
+    # https://docs.getwoke.tech/tools/
+    rev: 'v0.19.0'  # pick a tag to point to
+    hooks:
+      - id: woke
+        args: [--exit-1-on-failure]
+

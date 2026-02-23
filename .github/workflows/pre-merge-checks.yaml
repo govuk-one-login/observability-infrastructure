@@ -1,6 +1,9 @@
 name: Check PR
 
-on: pull_request
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
 #Prevent default write-all access - this was pointed out by this checkov check CKV2_GHA_1
 permissions:
   security-events: write
@@ -13,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Run cfn-lint
-        uses: govuk-one-login/github-actions/code-quality/check-linting@04aba26363bef051fb4fd40f0ac091b26e0e6836
+        uses: govuk-one-login/github-actions/code-quality/check-linting
         with:
           run-cfn-lint: false # until README.md is fixed
           run-prettier: false
@@ -23,18 +26,25 @@ jobs:
     name: Run Checkov
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Checkov Github Action
-        uses: bridgecrewio/checkov-action@v12
+      - name: Checkout Repo
+      - uses: actions/checkout@v6
+      - name: Run Checkov
+        uses: govuk-one-login/org-github-actions/checkov@v1
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: govuk-one-login/org-github-actions/pre-commit@v1
         with:
-          output_format: cli,sarif
-          output_file_path: console,results.sarif
-          directory: .
-          soft_fail: true
-          quiet: true
-          skip_check: CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        if: success() || failure()
+          python-version: 3.13                             # Optional, defaults to '3.13'
+
+  pre-commit-all:
+    runs-on: ubuntu-slim
+    steps:
+        uses: ./.github/workflows/temptest
         with:
-          sarif_file: results.sarif
+          python-version: 3.13                             # Optional, defaults to '3.13'
+          all-files: true
+          show-diff: true
+          fail-fast: false
