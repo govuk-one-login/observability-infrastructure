@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Run cfn-lint
-        uses: govuk-one-login/github-actions/code-quality/check-linting
+        uses: govuk-one-login/github-actions/code-quality/check-linting@v1
         with:
           run-cfn-lint: false # until README.md is fixed
           run-prettier: false
@@ -49,3 +49,5 @@ jobs:
           all-files: true
           show-diff: true
           fail-fast: false
+
+(Line: 19, Col: 15): Expected format {org}/{repo}[/path]@ref. Actual 'govuk-one-login/github-actions/code-quality/check-linting'
