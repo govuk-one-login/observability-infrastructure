@@ -43,7 +43,7 @@ jobs:
   pre-commit-all:
     runs-on: ubuntu-slim
     steps:
-        uses: ./.github/workflows/temptest
+      - uses: ./.github/workflows/temptest
         with:
           python-version: 3.13                             # Optional, defaults to '3.13'
           all-files: true
