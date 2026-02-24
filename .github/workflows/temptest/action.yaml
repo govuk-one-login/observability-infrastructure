@@ -107,7 +107,6 @@ runs:
           echo "Running:"
           echo "pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -e 's/ /.../'"
           echo
-          pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -CSDA -pe 'use feature 'unicode_strings'; binmode(STDOUT, ":utf8"); s/^(\x{1b}\[\d+m)*(-.*?)([ \t]+)(\x{1b}\[m)*(\r?)$/$2 . ("\x{2423}" x (length($3) + 0)) . $4 . $5 . "\x24"/e'
+          time pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -CSDA -pe 'use feature 'unicode_strings'; binmode(STDOUT, ":utf8"); s/^(\x{1b}\[\d+m)*(-.*?)([ \t]+)(\x{1b}\[m)*(\r?)$/$2 . ("\x{2423}" x (length($3) + 0)) . $4 . $5 . "\x24"/e'
           echo
-p
-
+          echo "Done!"
