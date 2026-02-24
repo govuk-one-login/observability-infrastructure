@@ -5,14 +5,16 @@ templates:
 
 # File patterns to ignore
 ignore_templates:
-  - lambdalayer/README.md
-  - .yamllint.yml
-  - .pre-commit-config.yaml
-  - .checkov.yaml
-  - .github/workflows/*.yaml
   - .cfnlintrc.yaml
-  - lambdalayer/runtime_config.json
+  - .checkov.yaml
+  - .github/**/*.yaml
+  - .pre-commit-config.yaml
+  - .pre-all.yaml
+  - .woke.yaml
+  - .yamllint.yml
   - infrastructure/**/build-spec.yaml
   - infrastructure/**/gitsync.yaml
+  - lambdalayer/README.md
+  - lambdalayer/runtime_config.json
 
 ignore_bad_template: true

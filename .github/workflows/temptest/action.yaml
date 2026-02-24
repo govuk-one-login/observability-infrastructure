@@ -100,7 +100,10 @@ runs:
           git config --global color.ui always
           echo
           echo "Running:"
-          echo "pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml"
+          echo "perl --version"
+          perl --version
+          echo "Running:"
+          echo "pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -e 's/ /.../'"
           echo
-          pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml
+          pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -C -pe 's/^(\x{1b}\[\d+m)*(-.*?)([ \t]+)(\x{1b}\[m)*(\r?)$/$2 . ("\x{2423}" x (length($3) + 0)) . $4 . $5 . "\x24"/e'
           echo
