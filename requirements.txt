@@ -1,6 +1,4 @@
 
-pre-commit
-
 cfn-lint
 
 checkov
@@ -11,6 +9,8 @@ gitlint
 # cfn-lint requirements:
 jschema-to-python
 junit-xml
+
+pre-commit
 proselint
 pydot
 requests>=2.28

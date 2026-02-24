@@ -100,8 +100,8 @@ runs:
           git config --global color.ui always
           echo
           echo "Running:"
-          echo "perl --version"
-          perl --version
+          echo "go version"
+          go version
           echo "Running:"
           echo "pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -e 's/ /.../'"
           echo
