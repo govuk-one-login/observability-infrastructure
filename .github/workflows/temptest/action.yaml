@@ -90,7 +90,7 @@ runs:
       #       ) }}
 
       - name: Install pre-commit mfl using pip
-        run: pip install pre-commit checkov yamllint codespell cfn-lint jschema-to-python sarif-om junit-xml pydot
+        run: pip install pre-commit checkov yamllint codespell cfn-lint jschema-to-python sarif-om junit-xml pydot >/dev/null 2>&1
         shell: bash
 
       - name: running pre-commit
@@ -100,10 +100,15 @@ runs:
           git config --global color.ui always
           echo
           echo "Running:"
-          echo "go ..."
-          apt search go
+          echo "pre-commit autoupdate"
+          echo
+          pre-commit autoupdate
+          echo
           echo "Running:"
           echo "pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -e 's/ /.../'"
           echo
-          pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -CSDA -pe 'use feature 'unicode_strings'; binmode(STDOUT, ":utf8"); s/^(\x{1b}\[\d+m)*(-.*?)([ \t]+)(\x{1b}\[m)*(\r?)$/$2 . ("\x{2423}" x (length($3) + 0)) . $4 . $5 . "\x24"/e'
+          time pre-commit run --color always --verbose ${PRE_COMMIT_ARGS} --config .pre-all.yaml | perl -CSDA -pe 'use feature 'unicode_strings'; binmode(STDOUT, ":utf8"); s/^(\x{1b}\[\d+m)*(-.*?)([ \t]+)(\x{1b}\[m)*(\r?)$/$2 . ("\x{2423}" x (length($3) + 0)) . $4 . $5 . "\x24"/e'
           echo
+          echo "Done!"
+p
+
