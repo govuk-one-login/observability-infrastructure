@@ -38,13 +38,3 @@ jobs:
       - uses: govuk-one-login/org-github-actions/pre-commit@v1
         with:
           python-version: 3.13                             # Optional, defaults to '3.13'
-
-  pre-commit-all:
-    runs-on: ubuntu-slim
-    steps:
-        uses: ./.github/workflows/temptest
-        with:
-          python-version: 3.13                             # Optional, defaults to '3.13'
-          all-files: true
-          show-diff: true
-          fail-fast: false
