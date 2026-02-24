@@ -48,3 +48,6 @@ skip-check:
   # due to the nature of our pipelines having to manage IAM resources
 
   - CKV_AWS_110  # Ensure IAM policies does not allow privilege escalation
+
+  # Skip this, as a) we have cloudtrail turned on, and b) buckets are not webserers
+  - CKV_AWS_18   # Severity: INFO. Ensure the S3 bucket has access logging enabled

@@ -95,7 +95,7 @@ repos:
   #         - "--args=--config=__GIT_WORKING_DIR__/.tflint.hcl"
 
   - repo: https://github.com/aws-cloudformation/cfn-lint
-    rev: v1.44.0
+    rev: v1.45.0
     hooks:
       - id: cfn-lint
         name: "cfn-lint: Lint Cloudformation templates"
@@ -105,8 +105,8 @@ repos:
           - sarif-om
           - junit-xml
           - pydot
-        args: [--format, pretty]
-  #       files: infrastructure/.*\.(json|yml|yaml)$
+        args: [--format, pretty, --config-file, .cfnlintrc.yaml]
+        files: infrastructure/.*\.(json|yml|yaml)$
 
   - repo: https://github.com/bridgecrewio/checkov.git
     rev: 3.2.506
