@@ -15,7 +15,9 @@ jobs:
     name: Run cfn-lint
     runs-on: ubuntu-22.04
     steps:
-      - name: Run cfn-lin (from github-actions)
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+      - name: Run cfn-lint (from github-actions)
         # Use @main, as https://github.com/govuk-one-login/github-actions does not do tagging/releases
         uses: govuk-one-login/github-actions/code-quality/check-linting@main
         with:
