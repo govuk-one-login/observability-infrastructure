@@ -15,7 +15,7 @@ jobs:
     name: Run cfn-lint
     runs-on: ubuntu-22.04
     steps:
-      - name: Run cfn-lint
+      - name: Run cfn-lin (from github-actions)
         uses: govuk-one-login/github-actions/code-quality/check-linting
         with:
           run-cfn-lint: false # until README.md is fixed
@@ -27,14 +27,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-      - uses: actions/checkout@v6
-      - name: Run Checkov
+        uses: actions/checkout@v6
+      - name: Run Checko (from org-github-actions)
         uses: govuk-one-login/org-github-actions/checkov@v1
 
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: govuk-one-login/org-github-actions/pre-commit@v1
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+      - name: Run pre-commit (from org-github-actions)
+        uses: govuk-one-login/org-github-actions/pre-commit@v1
         with:
           python-version: 3.13                             # Optional, defaults to '3.13'
