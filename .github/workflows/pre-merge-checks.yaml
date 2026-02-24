@@ -16,7 +16,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Run cfn-lin (from github-actions)
-        uses: govuk-one-login/github-actions/code-quality/check-linting
+        # Use @main, as https://github.com/govuk-one-login/github-actions does not do tagging/releases
+        uses: govuk-one-login/github-actions/code-quality/check-linting@main
         with:
           run-cfn-lint: false # until README.md is fixed
           run-prettier: false
