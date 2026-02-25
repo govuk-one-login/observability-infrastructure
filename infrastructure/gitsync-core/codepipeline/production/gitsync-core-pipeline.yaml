@@ -30,11 +30,6 @@ Resources:
   # CodeBuild role
   ######################################################################################################################
   CodeBuildServiceRole:
-    #checkov:skip=CKV_AWS_109
-    #checkov:skip=CKV_AWS_111
-    #checkov:skip=CKV_AWS_110
-    #checkov:skip=CKV_AWS_108
-    #checkov:skip=CKV_AWS_107
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub "CodeBuildRole-${GitHubRepoName}"
@@ -147,7 +142,6 @@ Resources:
   # CodePipeline role
   ######################################################################################################################
   CodePipelineServiceRole:
-    #checkov:skip=CKV_AWS_111
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub "CodePipelineRole-${GitHubRepoName}"
@@ -293,13 +287,13 @@ Resources:
               # https://docs.aws.amazon.com/codepipeline/latest/userguide/action-reference-CodestarConnectionSource.html#action-reference-CodestarConnectionSource-type
               ActionTypeId:
                 Category: Source
-                Owner: AWS                
+                Owner: AWS
                 Provider: CodeStarSourceConnection
                 Version: 1
               OutputArtifacts:
                 - Name: SourceCode
               Configuration:
-                FullRepositoryId: !Sub "${GitHubOwner}/${GitHubRepoName}"                
+                FullRepositoryId: !Sub "${GitHubOwner}/${GitHubRepoName}"
                 BranchName: !Ref GitHubBranch
                 # ConnectionArn: !GetAtt CodeStarConnection.ConnectionArn
                 ConnectionArn: !Ref ConnectionArn
