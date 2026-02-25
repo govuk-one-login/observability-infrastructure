@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
-      - name: Run cfn-lint (from github-actions)
+      - name: Run cfn-lint (from github-actions/code-quality/check-linting@main)
         # Use @main, as https://github.com/govuk-one-login/github-actions does not do tagging/releases
         uses: govuk-one-login/github-actions/code-quality/check-linting@main
         with:
@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
-      - name: Run Checko (from org-github-actions)
+      - name: Run Checko (from org-github-actions/checkov@v1)
         uses: govuk-one-login/org-github-actions/checkov@v1
 
   pre-commit:
@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
-      - name: Run pre-commit (from org-github-actions)
+      - name: Run pre-commit (from org-github-actions/pre-commit@v1)
         uses: govuk-one-login/org-github-actions/pre-commit@v1
         with:
           python-version: 3.13                             # Optional, defaults to '3.13'

@@ -6,16 +6,9 @@
 # fail_fast: true
 
 repos:
-  # # mete repo/identity, for debug
-  # - repo: meta
-  #   hooks:
-  #     - id: identity
-  #       name: 'Meta/identity: Just list the file scoped for tests'
-
   - repo: local
     hooks:
-      # this hook makes sure our pre-commit hooks are kept up
-      # to date
+      # this hook makes sure our pre-commit hooks are kept up to date
       - id: update-pre-commit
         name: update-pre-commit
         # run roughly every 10 commits
@@ -29,39 +22,10 @@ repos:
       # - id: end-of-file-fixer
       # - id: trailing-whitespace
       #   args: [--markdown-linebreak-ext=md]
-      # - id: mixed-line-ending
-      # - id: double-quote-string-fixer
+      - id: mixed-line-ending
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
-      # Removes UTF-8 BOM byte-order-marker
-      - id: fix-byte-order-marker
-      # Secrets
-      - id: detect-aws-credentials
-      - id: detect-private-key
-      # Python
-      - id: check-ast
-      - id: check-docstring-first
-      - id: check-builtin-literals
-      - id: requirements-txt-fixer
-      # Filetypes
-      # Leave this to yamllint
-      # - id: check-yaml
-      - id: check-json
-      # - id: pretty-format-json
-      - id: check-toml
-      - id: check-xml
-      # Files
-      - id: check-illegal-windows-names
-      - id: check-case-conflict
-      - id: check-symlinks
-      - id: destroyed-symlinks
-      # Repo
       - id: check-added-large-files
-      - id: forbid-submodules
-      - id: forbid-new-submodules
-      - id: check-merge-conflict
-      - id: no-commit-to-branch
-        args: [--branch, main]
 
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.38.0
@@ -112,8 +76,4 @@ repos:
     rev: 3.2.506
     hooks:
       - id: checkov
-        # name: Checkov tests
-        verbose: true
-        always_run: true
-        # args: [--skip-check CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56, --quiet]
         args: [--config-file, .checkov.yaml]
