@@ -1,0 +1,33 @@
+---
+# Checkov configuration file
+# Documentation: https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html
+
+directory:
+  - infrastructure
+
+# Include specific frameworks for scanning
+framework:
+  - cloudformation
+
+# Use baseline file to suppress known issues
+# Update this with: `checkov --create-baseline`
+# but better to fix findings instead
+baseline: .checkov.baseline
+
+# Output format
+output: cli       # yamllint disable-line rule:key-duplicates
+output: sarif     # yamllint disable-line rule:key-duplicates
+# output-file-path: results
+quiet: true
+compact: true
+
+# Other useful settings
+evaluate-variables: true
+summary-position: top
+
+# It is better to stick to default and use a baseline
+
+# check:
+# - Use baseline instead
+# skip-check:
+# - Use baseline instead

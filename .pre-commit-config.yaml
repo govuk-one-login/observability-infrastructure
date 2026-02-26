@@ -1,8 +1,79 @@
 ---
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+# Shared org pre-commit configuration
+# fail_fast: true
+
 repos:
+  - repo: local
+    hooks:
+      # this hook makes sure our pre-commit hooks are kept up to date
+      - id: update-pre-commit
+        name: update-pre-commit
+        # run roughly every 10 commits
+        # For busy repos we should change this to 15 or 20
+        entry: bash -c 'if (( RANDOM % 10 == 0 )); then bash -c "pre-commit autoupdate"; fi;'
+        language: system
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      # - id: end-of-file-fixer
+      # - id: trailing-whitespace
+      #   args: [--markdown-linebreak-ext=md]
+      - id: mixed-line-ending
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-added-large-files
+
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+
+  # #Add this if we need to validate schemas
+  # - repo: https://github.com/python-jsonschema/check-jsonschema
+  #   rev: 0.33.2
+  #   hooks:
+  #     - id: check-jsonschema
+  #       name: validate yaml
+  #       files: ^terraform/.*/*.yaml$
+  #       args: ["--schemafile", "schemas/schema.json"]
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [docs, build, feat, fix, ci, chore, refactor, revert, style, test]
+
+  # - repo: https://github.com/antonbabenko/pre-commit-terraform
+  #   rev: v1.105.0
+  #   hooks:
+  #     - id: terraform_fmt
+  #       args:
+  #         - --args=-recursive
+  #     - id: terraform_tflint
+  #       args:
+  #         - "--args=--config=__GIT_WORKING_DIR__/.tflint.hcl"
+
+  - repo: https://github.com/aws-cloudformation/cfn-lint
+    rev: v1.45.0
+    hooks:
+      - id: cfn-lint
+        name: "cfn-lint: Lint Cloudformation templates"
+        # pass_filenames: false
+        additional_dependencies:
+          - jschema-to-python
+          - sarif-om
+          - junit-xml
+          - pydot
+        args: [--format, pretty, --config-file, .cfnlintrc.yaml]
+        files: infrastructure/.*\.(json|yml|yaml)$
+
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: 3.2.450
+    rev: 3.2.506
     hooks:
       - id: checkov
-        # verbose: true
-        args: [--skip-check CKV_AWS_53,CKV_AWS_54,CKV_AWS_18,CKV_AWS_55,CKV_AWS_56, --quiet]
+        args: [--config-file, .checkov.yaml]

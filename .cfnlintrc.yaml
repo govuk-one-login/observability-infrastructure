@@ -1,0 +1,17 @@
+---
+
+templates:
+  - infrastructure/**/*.yaml
+
+# File patterns to ignore
+ignore_templates:
+  - .cfnlintrc.yaml
+  - .checkov.yaml
+  - .github/workflows/*.yaml
+  - .pre-commit-config.yaml
+  - .yamllint.yml
+  - infrastructure/gitsync-core/step-*/env/*/build-spec.yaml
+  - infrastructure/**/gitsync.yaml
+  - lambdalayer/runtime_config.json
+
+ignore_bad_template: true

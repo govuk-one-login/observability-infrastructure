@@ -1,0 +1,14 @@
+---
+extends: default
+
+locale: en_US.UTF-8
+
+ignore:
+  - .github/workflows
+  - infrastructure
+  - github-action-role
+
+rules:
+  line-length:
+    max: 100
+    level: warning
