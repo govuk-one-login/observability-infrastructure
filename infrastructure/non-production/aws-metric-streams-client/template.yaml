@@ -14,7 +14,7 @@ Parameters:
     Default: true
   SecretName:
     Description: Secret name
-    Type: String  
+    Type: String
     Default: DynatraceSecrets
   Environment:
     Description: Deployment environment
@@ -45,14 +45,14 @@ Parameters:
     - SIGN_VERIFY
     Default: ENCRYPT_DECRYPT
   DeletionPolicy:
-    Description: 'Attribute you can preserve, and in some cases, backup a resource when its stack is deleted' 
+    Description: 'Attribute you can preserve, and in some cases, backup a resource when its stack is deleted'
     Type: String
     AllowedValues:
     - Retain
     - Delete
     Default: Retain
   UpdateReplacePolicy:
-    Description: 'Attribute to retain or, in some cases, backup the existing physical instance of a resource when it is replaced during a stack update operation.' 
+    Description: 'Attribute to retain or, in some cases, backup the existing physical instance of a resource when it is replaced during a stack update operation.'
     Type: String
     AllowedValues:
     - Retain
@@ -68,7 +68,7 @@ Resources:
       Description: Secret for Dynatrace integration
       Name: !Sub ${Environment}/${SecretName}
       KmsKeyId: !Ref KMSKey
-      Tags: 
+      Tags:
         - Key: Service
           Value: aws-metric-streams-client
         - Key: Environment
@@ -100,14 +100,14 @@ Resources:
             - "kms:Decrypt"
             - "kms:GenerateDataKey"
           Resource: "*"
-      Tags: 
+      Tags:
         - Key: Service
           Value: aws-metric-streams-client
         - Key: Environment
           Value: !Sub ${Environment}
         - Key: RepositoryName
           Value: !Sub ${RepositoryName}
-          
+
   FirehoseMetricStreams:
     Type: AWS::KinesisFirehose::DeliveryStream
     Properties:
@@ -188,6 +188,10 @@ Resources:
             Condition:
               StringEquals:
                 'sts:ExternalId': !Ref 'AWS::AccountId'
+      Tags:
+        - Key: TestKey
+          Value: TestValue
+
 
   MetricStreamsRole:
     Type: AWS::IAM::Role
