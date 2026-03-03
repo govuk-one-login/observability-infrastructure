@@ -218,11 +218,22 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-1/env/${CTEnvironment}/build-spec.yaml
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - cd infrastructure/gitsync-core/step-1
+                - chmod +x deploy.sh
+                - ./deploy.sh Gitsync-core development GDS-GitHub-Connection $GITHUB_BRANCH observability-infrastructure DynatraceSecrets
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
+        # ADD: This new section to pass the branch name into the script
+        EnvironmentVariables:
+          - Name: GITHUB_BRANCH
+            Value: !Ref GitHubBranch
       Name: 'gitsync-core-pipeline-step-1'
       ServiceRole: !Ref CodeBuildServiceRole
 
