@@ -13,7 +13,7 @@ Parameters:
   CTEnvironment:
     Type: String
     Description: The Control Tower Environment you are deploying into.
-    Default: "non-production"
+    Default: "development"
   WorkingDir:
     Type: String
     Description: Working directory for IaC
