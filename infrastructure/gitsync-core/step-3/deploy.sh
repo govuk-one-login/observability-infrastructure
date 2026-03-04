@@ -16,18 +16,34 @@ TOPIC_ARN_EU_WEST_2=$(
   --query 'Stacks[0].Outputs[?OutputKey==`BuildNotificationsEventsSnsTopic`].OutputValue' \
   --output text
   )
+
+# --- NEW: CRITICAL SANITY CHECK ---
+if [ -z "$TOPIC_ARN_EU_WEST_2" ] || [ "$TOPIC_ARN_EU_WEST_2" == "None" ]; then
+    echo "ERROR: Could not find Topic ARN in eu-west-2. Check if ${STACK_NAME}-Event-Rules exists."
+    exit 1
+fi
 echo "INFO: successfully collected topic ARN from eu-west-2: ${TOPIC_ARN_EU_WEST_2}"
+
+# --- NEW: THE "CLEAN LIST" LOGIC ---
+# Start with the mandatory EU ARN. ONLY add a comma if a second ARN actually exists.
+EVENT_TOPICS_LIST="${TOPIC_ARN_EU_WEST_2}"
+
+if [ ! -z "${TOPIC_ARN_US_EAST_1}" ] && [ "${TOPIC_ARN_US_EAST_1}" != "None" ] && [ "${TOPIC_ARN_US_EAST_1}" != "null" ]; then
+    EVENT_TOPICS_LIST="${EVENT_TOPICS_LIST},${TOPIC_ARN_US_EAST_1}"
+    echo "INFO: Added US-EAST-1 topic to list."
+fi
+# ----------------------------------
 
 echo "INFO: deploying slack integration stack"
 aws cloudformation deploy \
-    --stack-name ${STACK_NAME}-Slack-Integration \
+    --stack-name "${STACK_NAME}-Slack-Integration" \
     --template-file slack-integration.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
     --region $REGION \
     --parameter-overrides \
-      EventTopicsList=${TOPIC_ARN_EU_WEST_2},${TOPIC_ARN_US_EAST_1} \
-      SlackChannelId=${SLACK_CHANNEL_ID} \
-      SlackWorkspaceId=${SLACK_WORKSPACE_ID}
+      EventTopicsList="${EVENT_TOPICS_LIST}" \
+      SlackChannelId="${SLACK_CHANNEL_ID}" \
+      SlackWorkspaceId="${SLACK_WORKSPACE_ID}"
 
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."
@@ -36,10 +52,10 @@ echo "INFO: Scanning stack health."
 # Poll the status until it reaches a completion or failure state
 while true; do
   STATUS=$(aws cloudformation describe-stacks \
-    --stack-name $STACK_NAME-Slack-Integration \
+    --stack-name "${STACK_NAME}-Slack-Integration" \
     --region $REGION \
     --query "Stacks[0].StackStatus" \
-    --output text)
+    --output text 2>/dev/null)
 
   if [[ "$STATUS" == "CREATE_COMPLETE" ]] || [[ "$STATUS" == "UPDATE_COMPLETE" ]]; then
     echo "STATUS: Stack deployment succeeded: $STATUS"
@@ -49,14 +65,12 @@ while true; do
     echo "Attempting to delete the failed stack..."
     
     aws cloudformation delete-stack \
-      --stack-name $STACK_NAME-Slack-Integration \
+      --stack-name "${STACK_NAME}-Slack-Integration" \
       --region $REGION
 
     echo "Stack deletion initiated. Waiting for deletion to complete..."
-
-    # Wait for the stack deletion to complete
     aws cloudformation wait stack-delete-complete \
-      --stack-name $STACK_NAME-Slack-Integration \
+      --stack-name "${STACK_NAME}-Slack-Integration" \
       --region $REGION
 
     echo "Stack deletion completed."
