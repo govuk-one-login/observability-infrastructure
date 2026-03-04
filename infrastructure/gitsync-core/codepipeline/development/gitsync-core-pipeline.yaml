@@ -17,7 +17,7 @@ Parameters:
   WorkingDir:
     Type: String
     Description: Working directory for IaC
-    Default: "infrastructure/gitsync-core/non-production"
+    Default: "infrastructure/gitsync-core"
   PipelineName:
     Type: String
     Default: codepipeline-gitsync-core-pipeline
