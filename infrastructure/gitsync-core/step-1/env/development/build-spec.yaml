@@ -1,0 +1,6 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - cd infrastructure/gitsync-core/step-1
+      - ./deploy.sh Gitsync-core development GDS-GitHub-Connection PSREGOV-3781/standardize-codepipeline-deployment-template observability-infrastructure DynatraceSecrets

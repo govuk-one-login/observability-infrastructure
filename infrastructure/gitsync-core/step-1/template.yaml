@@ -22,7 +22,7 @@ Parameters:
   CTEnvironment:
     Type: String
     Description: The Control Tower Environment you are deploying into.
-    Default: "default-env"
+    Default: "development"
 
   CodeStarConnection:
     Type: String
@@ -102,7 +102,8 @@ Resources:
               - Effect: Allow
                 Action:
                   - "secretsmanager:GetSecretValue"
-                Resource: !Ref SecretStoreArn
+                # FIX: Using !Sub to force ARN format and avoid the HTTP 400 'Resource must be in ARN format' error
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretStoreArn}*"
         - PolicyName: !Sub Service-Creation-${CTEnvironment}
           PolicyDocument:
             Version: '2012-10-17'
@@ -193,12 +194,12 @@ Resources:
               - cloudformation:TestType
               - config:PutDeliveryChannel
               Resource: "*"
-      Tags: 
+      Tags:
         - Key: RepositoryName
           Value: !Sub ${RepositoryName}
         - Key: Environment
           Value: !Sub ${CTEnvironment}
-      
+
 ######################################################################################################################
 # Regional Infrastructure
 ######################################################################################################################
@@ -222,7 +223,7 @@ Resources:
       RoleArn: !GetAtt GitSyncRole.Arn
       SyncType: "CFN_STACK_SYNC"
       TriggerResourceUpdateOn: "FILE_CHANGE"
-      PublishDeploymentStatus: "ENABLED" 
+      PublishDeploymentStatus: "ENABLED"
 
 Outputs:
   IAMRoleARN:
