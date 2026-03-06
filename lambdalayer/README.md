@@ -39,6 +39,12 @@ New versions are made available on the 3rd of each month.
 
 | Layer Version  | Layer Runtime   | Layer Architecture | Layer Type  | Layer ARNs  	                                                                                                       |
 |--------------- |---------------- |------------------- |------------ |--------------------------------------------------------------------------------------------------------------------- |
+| 1.329          | NODEJS_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_nodejs_x86:1  | 
+|                | NODEJS_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_nodejs_arm:1  |
+|                | JAVA_LAYER      | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_java_x86:1    |
+|                | JAVA_LAYER      | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_java_arm:1    | 
+|                | PYTHON_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_python_x86:1  |
+|                | PYTHON_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_python_arm:1  |
 | 1.327          | NODEJS_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_327_51_20251205-162230_with_collector_nodejs_x86:1  | 
 |                | NODEJS_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_327_51_20251205-162230_with_collector_nodejs_arm:1  |
 |                | JAVA_LAYER      | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_327_51_20251205-162230_with_collector_java_x86:1    |
