@@ -22,7 +22,7 @@ if [[ -n "$SECRETNAME" ]]; then
   echo "INFO: collecting secret ARN"
   SECRETARN=$(
     aws secretsmanager describe-secret \
-      --secret-id ${SECRETNAME} \
+      --secret-id "${ENVIRONMENT}/${SECRETNAME}" \
       --query "ARN" \
       --output text \
       --region eu-west-2)
@@ -70,7 +70,7 @@ while true; do
   elif [[ "$STATUS" == "CREATE_FAILED" ]] || [[ "$STATUS" == "ROLLBACK_COMPLETE" ]] || [[ "$STATUS" == "ROLLBACK_FAILED" ]]; then
     echo "STATUS: Stack deployment failed: $STATUS"
     echo "Attempting to delete the failed stack..."
-    
+
     aws cloudformation delete-stack \
       --stack-name $STACK_NAME-step-1 \
       --region $REGION

@@ -89,7 +89,6 @@ Resources:
           Principal:
             Service:
               - secretsmanager.amazonaws.com
-              - codepipeline.amazonaws.com
           Action:
             - "kms:Decrypt"
             - "kms:GenerateDataKey"
