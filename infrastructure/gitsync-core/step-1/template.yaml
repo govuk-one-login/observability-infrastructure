@@ -141,6 +141,7 @@ Resources:
                 - iam:TagRole
                 - iam:DeleteRolePolicy
                 - iam:GetRole
+                - iam:GetRolePolicy
                 - iam:CreateServiceLinkedRole
                 Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*
               - Effect: Allow
@@ -193,12 +194,12 @@ Resources:
               - cloudformation:TestType
               - config:PutDeliveryChannel
               Resource: "*"
-      Tags: 
+      Tags:
         - Key: RepositoryName
           Value: !Sub ${RepositoryName}
         - Key: Environment
           Value: !Sub ${CTEnvironment}
-      
+
 ######################################################################################################################
 # Regional Infrastructure
 ######################################################################################################################
@@ -222,7 +223,7 @@ Resources:
       RoleArn: !GetAtt GitSyncRole.Arn
       SyncType: "CFN_STACK_SYNC"
       TriggerResourceUpdateOn: "FILE_CHANGE"
-      PublishDeploymentStatus: "ENABLED" 
+      PublishDeploymentStatus: "ENABLED"
 
 Outputs:
   IAMRoleARN:
