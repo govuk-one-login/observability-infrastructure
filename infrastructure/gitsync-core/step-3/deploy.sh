@@ -25,7 +25,7 @@ aws cloudformation deploy \
     --capabilities CAPABILITY_NAMED_IAM \
     --region $REGION \
     --parameter-overrides \
-      EventTopicsList=${TOPIC_ARN_EU_WEST_2},${TOPIC_ARN_US_EAST_1} \
+      EventTopicsList=${TOPIC_ARN_EU_WEST_2} \
       SlackChannelId=${SLACK_CHANNEL_ID} \
       SlackWorkspaceId=${SLACK_WORKSPACE_ID}
 
@@ -47,7 +47,7 @@ while true; do
   elif [[ "$STATUS" == "CREATE_FAILED" ]] || [[ "$STATUS" == "ROLLBACK_COMPLETE" ]] || [[ "$STATUS" == "ROLLBACK_FAILED" ]]; then
     echo "STATUS: Stack deployment failed: $STATUS"
     echo "Attempting to delete the failed stack..."
-    
+
     aws cloudformation delete-stack \
       --stack-name $STACK_NAME-Slack-Integration \
       --region $REGION
