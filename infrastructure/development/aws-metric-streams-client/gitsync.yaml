@@ -1,3 +1,4 @@
 template-file-path: infrastructure/development/aws-metric-streams-client/template.yaml
-parameters: {}
+parameters:
+  SecretName: development/DynatraceSecretsV2
 tags: {}
