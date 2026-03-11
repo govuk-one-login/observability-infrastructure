@@ -60,54 +60,6 @@ Parameters:
     Default: Retain
 
 Resources:
-  DynatraceSecrets:
-    Type: AWS::SecretsManager::Secret
-    DeletionPolicy: !Ref DeletionPolicy
-    UpdateReplacePolicy: !Ref UpdateReplacePolicy
-    Properties:
-      Description: Secret for Dynatrace integration
-      Name: !Sub ${Environment}/${SecretName}
-      KmsKeyId: !Ref KMSKey
-      Tags:
-        - Key: Service
-          Value: aws-metric-streams-client
-        - Key: Environment
-          Value: !Sub ${Environment}
-        - Key: RepositoryName
-          Value: !Sub ${RepositoryName}
-
-  KMSKey:
-    DeletionPolicy: !Ref DeletionPolicy
-    UpdateReplacePolicy: !Ref UpdateReplacePolicy
-    Type: 'AWS::KMS::Key'
-    Properties:
-      EnableKeyRotation: true
-      KeySpec: !Ref KeySpec
-      KeyUsage: !Ref KeyUsage
-      KeyPolicy:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
-          Action: 'kms:*'
-          Resource: '*'
-        - Sid: AllowSecretsManagerAccess
-          Effect: Allow
-          Principal:
-            Service: secretsmanager.amazonaws.com
-          Action:
-            - "kms:Decrypt"
-            - "kms:GenerateDataKey"
-          Resource: "*"
-      Tags:
-        - Key: Service
-          Value: aws-metric-streams-client
-        - Key: Environment
-          Value: !Sub ${Environment}
-        - Key: RepositoryName
-          Value: !Sub ${RepositoryName}
-
   FirehoseMetricStreams:
     Type: AWS::KinesisFirehose::DeliveryStream
     Properties:
