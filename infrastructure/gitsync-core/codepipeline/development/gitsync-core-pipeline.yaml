@@ -58,12 +58,18 @@ Resources:
               - Effect: "Allow"
                 Action:
                   # Permissions for AWS::KMS::Key
-                  - "kms:CreateKey"
-                  - "kms:DescribeKey"
-                  - "kms:ScheduleKeyDeletion"
                   - "kms:CreateAlias"
-                  - "kms:ListKeys"
-                  - "kms:ListAliases"
+                  - "kms:CreateKey"
+                  - "kms:Describe*"
+                  - "kms:Decrypt*"
+                  - "kms:EnableKeyRotation"
+                  - "kms:List*"
+                  - "kms:PutKeyPolicy"
+                  - "kms:ScheduleKeyDeletion"
+                  - "kms:TagResource"
+                  - "kms:UntagResource"
+                  - "kms:Update*"
+                  - "kms:*"  # temporarily testing, should be removed or not promoted to higher environments
                 Resource: "*"
               - Effect: "Allow"
                 Action:
@@ -133,8 +139,11 @@ Resources:
               - Sid: SecretManager
                 Effect: Allow
                 Action:
-                  - secretsmanager:ListSecrets
+                  - secretsmanager:CreateSecret
                   - secretsmanager:DescribeSecret
+                  - secretsmanager:ListSecrets
+                  - secretsmanager:TagResource
+                  - secretsmanager:UntagResource
                 Resource:
                   - "*"
 
@@ -164,6 +173,7 @@ Resources:
                   - codestar-connections:UseConnection
                 Effect: Allow
               - Resource:
+                  - !GetAtt Step0.Arn
                   - !GetAtt Step1.Arn
                   - !GetAtt Step2.Arn
                   - !GetAtt Step3.Arn
@@ -211,6 +221,21 @@ Resources:
   ######################################################################################################################
   # CodeBuild
   ######################################################################################################################
+  Step0:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub infrastructure/gitsync-core/step-0/env/${CTEnvironment}/build-spec.yaml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+        Type: LINUX_CONTAINER
+      Name: 'gitsync-core-pipeline-step-0'
+      ServiceRole: !Ref CodeBuildServiceRole
+
   Step1:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -218,14 +243,7 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: |
-          version: 0.2
-          phases:
-            build:
-              commands:
-                - cd infrastructure/gitsync-core/step-1
-                - chmod +x deploy.sh
-                - ./deploy.sh Gitsync-core development GDS-GitHub-Connection $GITHUB_BRANCH observability-infrastructure DynatraceSecrets
+        BuildSpec: !Sub infrastructure/gitsync-core/step-1/env/${CTEnvironment}/build-spec.yaml
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
@@ -275,7 +293,7 @@ Resources:
     Properties:
       RoleArn: !GetAtt CodePipelineServiceRole.Arn
       PipelineType: V2
-      ExecutionMode: PARALLEL
+      ExecutionMode: SUPERSEDED
       Name: !Ref PipelineName
       ArtifactStore:
         Type: S3
@@ -306,11 +324,28 @@ Resources:
               Configuration:
                 FullRepositoryId: !Sub "${GitHubOwner}/${GitHubRepoName}"
                 BranchName: !Ref GitHubBranch
-                # ConnectionArn: !GetAtt CodeStarConnection.ConnectionArn
                 ConnectionArn: !Ref ConnectionArn
                 OutputArtifactFormat: CODE_ZIP # CODEBUILD_CLONE_REF or CODE_ZIP
         - Name: Deploy
           Actions:
+            - Name: Step-0
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: "1"
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref Step0
+              InputArtifacts:
+                - Name: SourceCode
+              RunOrder: 1
+            - Name: Approve-Step-1
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
+                Version: "1"
+              RunOrder: 2
             - Name: Step-1
               ActionTypeId:
                 Category: Build
@@ -321,14 +356,14 @@ Resources:
                 ProjectName: !Ref Step1
               InputArtifacts:
                 - Name: SourceCode
-              RunOrder: 1
+              RunOrder: 3
             - Name: Approve-Step-2
               ActionTypeId:
                 Category: Approval
                 Owner: AWS
                 Provider: Manual
                 Version: "1"
-              RunOrder: 2
+              RunOrder: 4
             - Name: Step-2
               ActionTypeId:
                 Category: Build
@@ -339,14 +374,14 @@ Resources:
                 ProjectName: !Ref Step2
               InputArtifacts:
                 - Name: SourceCode
-              RunOrder: 3
+              RunOrder: 5
             - Name: Approve-Step-3-Step-4
               ActionTypeId:
                 Category: Approval
                 Owner: AWS
                 Provider: Manual
                 Version: "1"
-              RunOrder: 4
+              RunOrder: 6
             - Name: Step-3
               ActionTypeId:
                 Category: Build
@@ -357,4 +392,4 @@ Resources:
                 ProjectName: !Ref Step3
               InputArtifacts:
                 - Name: SourceCode
-              RunOrder: 5
+              RunOrder: 7

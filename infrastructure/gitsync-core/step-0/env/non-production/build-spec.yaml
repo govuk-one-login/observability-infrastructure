@@ -1,0 +1,6 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - cd infrastructure/gitsync-core/step-0
+      - ./deploy.sh Gitsync-core non-production observability-infrastructure DynatraceSecretsV2
