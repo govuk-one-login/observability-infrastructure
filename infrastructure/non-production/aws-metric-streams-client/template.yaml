@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Infrastracture for CloudWatch Metric Streams and delivering to Dynatrace
+Description: Infrastructure for CloudWatch Metric Streams and delivering to Dynatrace
 
 Parameters:
   FirehoseHttpDeliveryEndpoint:
@@ -113,6 +113,10 @@ Resources:
     Properties:
       DeliveryStreamType: DirectPut
       HttpEndpointDestinationConfiguration:
+        CloudWatchLoggingOptions:
+          Enabled: true
+          LogGroupName: !Ref FirehoseErrorLogGroup
+          LogStreamName: HttpDelivery
         BufferingHints:
           IntervalInSeconds: 60
           SizeInMBs: 3
@@ -133,6 +137,14 @@ Resources:
         S3Configuration:
           BucketARN: !GetAtt FailedDataBucket.Arn
           RoleARN: !GetAtt FailedDataBucketRole.Arn
+
+  FirehoseErrorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      # Using Environment instead of Firehose Name to break Circular Dependency
+      LogGroupName: !Sub /aws/kinesisfirehose/metric-stream-${Environment}-errors
+      RetentionInDays: 7
+      KmsKeyId: !GetAtt KMSKey.Arn
 
   FailedDataBucketPolicy:
     Type: AWS::IAM::Policy
@@ -157,7 +169,12 @@ Resources:
                 - ''
                 - - 'arn:aws:s3:::'
                   - !Ref FailedDataBucket
-                  - '*'
+                  - '/*'
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource: !GetAtt FirehoseErrorLogGroup.Arn
 
   FailedDataBucket:
     Type: AWS::S3::Bucket
