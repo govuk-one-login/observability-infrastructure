@@ -58,7 +58,7 @@ Resources:
     UpdateReplacePolicy: !Ref UpdateReplacePolicy
     Properties:
       Description: Secret for Dynatrace integration
-      Name: !Sub ${Environment}/${SecretName}
+      Name: !Ref SecretName
       KmsKeyId: !Ref KMSKey
       Tags:
         - Key: Service

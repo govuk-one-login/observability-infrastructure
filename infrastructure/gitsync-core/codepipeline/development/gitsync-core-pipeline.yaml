@@ -282,7 +282,7 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
-      Name: 'gitsync-core-pipeline-step-4'
+      Name: 'gitsync-core-pipeline-step-3'
       ServiceRole: !Ref CodeBuildServiceRole
 
   #####################################################################################################################
@@ -375,7 +375,7 @@ Resources:
               InputArtifacts:
                 - Name: SourceCode
               RunOrder: 5
-            - Name: Approve-Step-3-Step-4
+            - Name: Approve-Step-3
               ActionTypeId:
                 Category: Approval
                 Owner: AWS
