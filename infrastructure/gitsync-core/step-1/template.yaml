@@ -37,7 +37,7 @@ Parameters:
 Resources:
 
 ######################################################################################################################
-# Shared Infrastructure for Regional and Global
+# Git sync role
 ######################################################################################################################
   GitSyncRole:
     Type: 'AWS::IAM::Role'
@@ -139,6 +139,7 @@ Resources:
                 - iam:DeleteRole
                 - iam:PutRolePolicy
                 - iam:TagRole
+                - iam:UntagRole
                 - iam:DeleteRolePolicy
                 - iam:GetRole
                 - iam:GetRolePolicy
@@ -199,9 +200,11 @@ Resources:
           Value: !Sub ${RepositoryName}
         - Key: Environment
           Value: !Sub ${CTEnvironment}
+        - Key: TestTag
+          Value: OtherNewValue
 
 ######################################################################################################################
-# Regional Infrastructure
+# Git sync configuration
 ######################################################################################################################
   GitHubRepoLink:
     Type: AWS::CodeStarConnections::RepositoryLink

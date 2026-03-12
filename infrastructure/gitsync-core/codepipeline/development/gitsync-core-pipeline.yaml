@@ -308,7 +308,7 @@ Resources:
                     - !Ref GitHubBranch
                 FilePaths:
                   Includes:
-                    - !Sub "${WorkingDir}"
+                    - !Ref WorkingDir
       Stages:
         - Name: Source
           Actions:
