@@ -37,7 +37,7 @@ Parameters:
 Resources:
 
 ######################################################################################################################
-# Shared Infrastructure for Regional and Global
+# Git sync role
 ######################################################################################################################
   GitSyncRole:
     Type: 'AWS::IAM::Role'
@@ -139,8 +139,10 @@ Resources:
                 - iam:DeleteRole
                 - iam:PutRolePolicy
                 - iam:TagRole
+                - iam:UntagRole
                 - iam:DeleteRolePolicy
                 - iam:GetRole
+                - iam:GetRolePolicy
                 - iam:CreateServiceLinkedRole
                 Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*
               - Effect: Allow
@@ -193,14 +195,16 @@ Resources:
               - cloudformation:TestType
               - config:PutDeliveryChannel
               Resource: "*"
-      Tags: 
+      Tags:
         - Key: RepositoryName
           Value: !Sub ${RepositoryName}
         - Key: Environment
           Value: !Sub ${CTEnvironment}
-      
+        - Key: TestTag
+          Value: OtherNewValue
+
 ######################################################################################################################
-# Regional Infrastructure
+# Git sync configuration
 ######################################################################################################################
   GitHubRepoLink:
     Type: AWS::CodeStarConnections::RepositoryLink
@@ -222,7 +226,7 @@ Resources:
       RoleArn: !GetAtt GitSyncRole.Arn
       SyncType: "CFN_STACK_SYNC"
       TriggerResourceUpdateOn: "FILE_CHANGE"
-      PublishDeploymentStatus: "ENABLED" 
+      PublishDeploymentStatus: "ENABLED"
 
 Outputs:
   IAMRoleARN:

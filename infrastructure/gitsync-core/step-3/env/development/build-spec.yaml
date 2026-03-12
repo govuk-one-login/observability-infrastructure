@@ -1,0 +1,6 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - cd infrastructure/gitsync-core/step-3
+      - ./deploy.sh GitSyncNotifications C06PP0YR7PB T8GT9416G

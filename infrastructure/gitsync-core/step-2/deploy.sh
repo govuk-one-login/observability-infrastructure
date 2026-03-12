@@ -6,6 +6,7 @@ STACK_NAME=$1
 REGION=$2
 REPONAME=$3
 
+echo "INFO: deploying SNS notification rules configuration"
 echo "INFO: executing cloudformation deploy for region: $region"
 aws cloudformation deploy \
   --region $REGION \
@@ -35,7 +36,7 @@ while true; do
   elif [[ "$STATUS" == "CREATE_FAILED" ]] || [[ "$STATUS" == "ROLLBACK_COMPLETE" ]] || [[ "$STATUS" == "ROLLBACK_FAILED" ]]; then
     echo "STATUS: Stack deployment failed: $STATUS"
     echo "Attempting to delete the failed stack..."
-    
+
     aws cloudformation delete-stack \
       --stack-name $STACK_NAME-Event-Rules \
       --region $REGION

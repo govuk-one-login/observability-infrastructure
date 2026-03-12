@@ -1,33 +1,22 @@
 #!/bin/bash
-# This script queries topic ARNs from event rule stacks deployed in Step-3,
-# assigns them to variables and uses them as input parameters to the deploy
-# command for the slack integration template.
+# This script deploys the core gitsync infrastructure. And regional infrastructure in eu-west-2
 
-STACK_NAME=$1
-SLACK_CHANNEL_ID=$2
-SLACK_WORKSPACE_ID=$3
-REGION=eu-west-2
+STACK_NAME="$1-step-0"
+ENVIRONMENT=$2
+REGION="eu-west-2"
+REPONAME=$3
+SECRETNAME=$4
 
-echo "INFO: collecting topic ARN from: eu-west-2"
-TOPIC_ARN_EU_WEST_2=$(
-  aws cloudformation describe-stacks \
-  --region eu-west-2 \
-  --stack-name ${STACK_NAME}-Event-Rules \
-  --query 'Stacks[0].Outputs[?OutputKey==`BuildNotificationsEventsSnsTopic`].OutputValue' \
-  --output text
-  )
-echo "INFO: successfully collected topic ARN from eu-west-2: ${TOPIC_ARN_EU_WEST_2}"
-
-echo "INFO: deploying slack integration stack"
+echo "INFO: deploying Secrets Manager stack"
 aws cloudformation deploy \
-    --stack-name ${STACK_NAME}-Slack-Integration \
-    --template-file slack-integration.yaml \
-    --capabilities CAPABILITY_NAMED_IAM \
-    --region $REGION \
-    --parameter-overrides \
-      EventTopicsList=${TOPIC_ARN_EU_WEST_2} \
-      SlackChannelId=${SLACK_CHANNEL_ID} \
-      SlackWorkspaceId=${SLACK_WORKSPACE_ID}
+  --region $REGION \
+  --stack-name "$STACK_NAME" \
+  --template-file template.yaml \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --parameter-overrides \
+    Environment="${ENVIRONMENT}" \
+    RepositoryName="${REPONAME}" \
+    SecretName="${SECRETNAME}"
 
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."
@@ -36,7 +25,7 @@ echo "INFO: Scanning stack health."
 # Poll the status until it reaches a completion or failure state
 while true; do
   STATUS=$(aws cloudformation describe-stacks \
-    --stack-name $STACK_NAME-Slack-Integration \
+    --stack-name "$STACK_NAME" \
     --region $REGION \
     --query "Stacks[0].StackStatus" \
     --output text)
@@ -49,14 +38,14 @@ while true; do
     echo "Attempting to delete the failed stack..."
 
     aws cloudformation delete-stack \
-      --stack-name $STACK_NAME-Slack-Integration \
+      --stack-name "$STACK_NAME" \
       --region $REGION
 
     echo "Stack deletion initiated. Waiting for deletion to complete..."
 
     # Wait for the stack deletion to complete
     aws cloudformation wait stack-delete-complete \
-      --stack-name $STACK_NAME-Slack-Integration \
+      --stack-name "$STACK_NAME" \
       --region $REGION
 
     echo "Stack deletion completed."

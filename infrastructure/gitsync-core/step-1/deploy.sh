@@ -9,25 +9,25 @@ BRANCHNAME=$4
 REPONAME=$5
 SECRETNAME=$6
 
-echo "INFO: collecting connection ARN"
+echo "INFO: collecting CodeConnection ARN"
 CONNECTIONARN=$(
   aws codestar-connections list-connections \
     --query "Connections[?ConnectionName=='${CONNECTIONNAME}'].ConnectionArn" \
     --output text \
     --region eu-west-2)
 
-echo "INFO: Using the codestar connection: (${CONNECTIONARN})"
+echo "INFO: Using the CodeConnection: (${CONNECTIONARN})"
 
 if [[ -n "$SECRETNAME" ]]; then
   echo "INFO: collecting secret ARN"
   SECRETARN=$(
     aws secretsmanager describe-secret \
-      --secret-id ${SECRETNAME} \
+      --secret-id "${SECRETNAME}" \
       --query "ARN" \
       --output text \
       --region eu-west-2)
 
-  echo "INFO: deploying slack integration stack"
+  echo "INFO: deploying Git sync configuration"
   aws cloudformation deploy \
     --region $REGION \
     --stack-name $STACK_NAME-step-1 \
@@ -40,7 +40,7 @@ if [[ -n "$SECRETNAME" ]]; then
       RepositoryName=${REPONAME} \
       SecretStoreArn=${SECRETARN}
 else
-  echo "INFO: deploying slack integration stack"
+  echo "INFO: deploying Git sync configuration"
   aws cloudformation deploy \
     --region $REGION \
     --stack-name $STACK_NAME-step-1 \
@@ -70,7 +70,7 @@ while true; do
   elif [[ "$STATUS" == "CREATE_FAILED" ]] || [[ "$STATUS" == "ROLLBACK_COMPLETE" ]] || [[ "$STATUS" == "ROLLBACK_FAILED" ]]; then
     echo "STATUS: Stack deployment failed: $STATUS"
     echo "Attempting to delete the failed stack..."
-    
+
     aws cloudformation delete-stack \
       --stack-name $STACK_NAME-step-1 \
       --region $REGION
