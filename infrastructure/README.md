@@ -7,7 +7,7 @@ This infrastructure manages:
 
 
 ## Deployment
-Due to Git sync limitations, the CloudFormation Stack must exist before Git sync can be enabled and actual resources deployed from templates. There is therefore a multi-stage process needed to both create the Stack with relevant Git sync config, and sync the Stack from templates within the repo
+Due to Git sync limitations, the CloudFormation Stack must exist before Git sync can be enabled and actual resources deployed from templates. There is therefore a multi-stage process needed to both create the Stack with relevant Git sync config, and sync the Stack from templates within the repo.
 
 ### Prerequisites
 Before starting the deployment, the following account-level configuration must have been completed:
@@ -30,7 +30,7 @@ Before starting the deployment, the following account-level configuration must h
     1. Once done, approve the required approval stages
     1. The subsequent pipeline stages will run, pending appropriate approvals, until complete
 
-## Dynatrace Secrets
+### Dynatrace Secrets
 
 The Dynatrace API key and endpoint URL are stored in a Secrets Manager Secret resource. This should be an unqualified secret name (no environment prefix), and should be in the format:
 
@@ -67,8 +67,17 @@ Secret name: `DynatraceSecretsV2`
 1. Once approved, apply same changes
 
 
+## To Do
+
+- [x] Remove unused Parameters from aws-metric-streams template as this is no longer creating KMS or Secrets Manager resources
+- [ ] Fix Codepipeline trigger directories (WORKING_DIR parameter).
+- [ ] Move any CloudFormation parameters out of CodeBuild build spec files and into native CloudFormation Param definitions, or pass them in via CodePipeline input params/environment variables
+- [ ] Review permissions for Gitsync role and Codepipeline service roles
+- [ ] Remove any Codepipeline Approval stages that are not providing any value
+
+
 ## Known issues
 
-### Dynatrace Secrets resources used by Metric Stream Firehose
+### [RESOLVED] Dynatrace Secrets resources used by Metric Stream Firehose
 
 Recreating infrastructure from scratch fails because there is a timing issue with the resources in the aws-metric-stream-client template. The Dynatrace secret is created in Secrets Manager, but initially it does not have a value. In the same template, the Metric Streams is also created, but this depends on the Secret having a value.
