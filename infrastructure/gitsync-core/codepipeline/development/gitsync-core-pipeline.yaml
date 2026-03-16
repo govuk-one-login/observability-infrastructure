@@ -23,7 +23,6 @@ Parameters:
     Default: codepipeline-gitsync-core-pipeline
   ConnectionArn:
     Type: String
-    Default: ""
 
 Resources:
   ######################################################################################################################
@@ -62,6 +61,9 @@ Resources:
                   - "kms:CreateKey"
                   - "kms:Describe*"
                   - "kms:Decrypt*"
+                  - "kms:GenerateDataKey"
+                  - "kms:GetKeyRotationStatus"
+                  - "kms:GetKeyPolicy"
                   - "kms:EnableKeyRotation"
                   - "kms:List*"
                   - "kms:PutKeyPolicy"
@@ -69,7 +71,6 @@ Resources:
                   - "kms:TagResource"
                   - "kms:UntagResource"
                   - "kms:Update*"
-                  - "kms:*"  # temporarily testing, should be removed or not promoted to higher environments
                 Resource: "*"
               - Effect: "Allow"
                 Action:
