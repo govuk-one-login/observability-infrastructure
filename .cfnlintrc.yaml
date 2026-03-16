@@ -12,6 +12,7 @@ ignore_templates:
   - .yamllint.yml
   - infrastructure/gitsync-core/step-*/env/*/build-spec.yaml
   - infrastructure/**/gitsync.yaml
+  - infrastructure/gitsync-core/codepipeline/parameters/*.yaml
   - lambdalayer/runtime_config.json
 
 ignore_bad_template: true

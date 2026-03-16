@@ -1,0 +1,7 @@
+parameters:
+  Environment: development
+  ConnectionName: GDS-GitHub-Connection
+  GitHubRepoName: observability-infrastructure
+  GitHubBranch: main  # <-- change this to your feature branch while testing in development
+  PipelineName: codepipeline-gitsync-core-pipeline
+  WorkingDir: infrastructure/gitsync-core/non-production
