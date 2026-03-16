@@ -16,48 +16,6 @@ Parameters:
     Description: Secret name
     Type: String
     Default: DynatraceSecrets
-  Environment:
-    Description: Deployment environment
-    Type: String
-    Default: development
-  RepositoryName:
-    Description: Repository name
-    Type: String
-    Default: observability-infrastructure
-  KeySpec:
-    Description: 'Specify the type of the CMK.'
-    Type: String
-    AllowedValues:
-    - SYMMETRIC_DEFAULT
-    - RSA_2048
-    - RSA_3072
-    - RSA_4096
-    - ECC_NIST_P256
-    - ECC_NIST_P384
-    - ECC_NIST_P521
-    - ECC_SECG_P256K1
-    Default: SYMMETRIC_DEFAULT
-  KeyUsage:
-    Description: 'Which cryptographic operations should the CMK support?'
-    Type: String
-    AllowedValues:
-    - ENCRYPT_DECRYPT
-    - SIGN_VERIFY
-    Default: ENCRYPT_DECRYPT
-  DeletionPolicy:
-    Description: 'Attribute you can preserve, and in some cases, backup a resource when its stack is deleted'
-    Type: String
-    AllowedValues:
-    - Retain
-    - Delete
-    Default: Retain
-  UpdateReplacePolicy:
-    Description: 'Attribute to retain or, in some cases, backup the existing physical instance of a resource when it is replaced during a stack update operation.'
-    Type: String
-    AllowedValues:
-    - Retain
-    - Delete
-    Default: Retain
 
 Resources:
   FirehoseMetricStreams:
