@@ -125,13 +125,14 @@ Resources:
               - Effect: Allow
                 Action:
                   - "secretsmanager:CreateSecret"
-                  - "secretsmanager:PutSecretValue"
-                  - "secretsmanager:UpdateSecret"
                   - "secretsmanager:DeleteSecret"
-                  - "secretsmanager:ListSecrets"
                   - "secretsmanager:DescribeSecret"
+                  - "secretsmanager:GetSecretValue"
+                  - "secretsmanager:ListSecrets"
+                  - "secretsmanager:PutSecretValue"
                   - "secretsmanager:TagResource"
                   - "secretsmanager:UntagResource"
+                  - "secretsmanager:UpdateSecret"
                 Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*
               - Effect: Allow
                 Action:
