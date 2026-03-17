@@ -190,7 +190,7 @@ Resources:
                 'sts:ExternalId': !Ref 'AWS::AccountId'
       Tags:
         - Key: TestKey
-          Value: TestValue
+          Value: Othervalue
 
 
   MetricStreamsRole:
