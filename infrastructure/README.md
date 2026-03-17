@@ -71,6 +71,9 @@ Secret name: `DynatraceSecretsV2`
 
 - [x] Remove unused Parameters from aws-metric-streams template as this is no longer creating KMS or Secrets Manager resources
 - [ ] Fix Codepipeline trigger directories (WORKING_DIR parameter).
+- [ ] Move any resources not using Git sync out of environment-specific templates and have a single, parameterised version instead
+    - [ ] codepipeline
+    - [ ] step-x templates
 - [ ] Move any CloudFormation parameters out of CodeBuild build spec files and into native CloudFormation Param definitions, or pass them in via CodePipeline input params/environment variables
 - [ ] Review permissions for Gitsync role and Codepipeline service roles
 - [ ] Remove any Codepipeline Approval stages that are not providing any value
