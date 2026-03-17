@@ -1,28 +1,28 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
+  ConnectionArn:
+    Type: String
+  Environment:
+    Type: String
+    Description: The Control Tower Environment you are deploying into.
+    Default: "development"
+  GitHubBranch:
+    Type: String
+    Default: main
   GitHubOwner:
     Type: String
     Default: govuk-one-login
   GitHubRepoName:
     Type: String
     Default: "observability-infrastructure"
-  GitHubBranch:
+  PipelineName:
     Type: String
-    Default: PSREGOV-3781/development-deployment-infrastructure
-  CTEnvironment:
-    Type: String
-    Description: The Control Tower Environment you are deploying into.
-    Default: "development"
+    Default: codepipeline-gitsync-core-pipeline
   WorkingDir:
     Type: String
     Description: Working directory for IaC
     Default: "infrastructure/gitsync-core"
-  PipelineName:
-    Type: String
-    Default: codepipeline-gitsync-core-pipeline
-  ConnectionArn:
-    Type: String
 
 Resources:
   ######################################################################################################################
@@ -198,7 +198,7 @@ Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${GitHubRepoName}-pipeline-${CTEnvironment}'
+      BucketName: !Sub '${GitHubRepoName}-pipeline-${Environment}'
       VersioningConfiguration:
         Status: Enabled
       # BucketEncryption:
@@ -229,7 +229,7 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-0/env/${CTEnvironment}/build-spec.yaml
+        BuildSpec: !Sub infrastructure/gitsync-core/step-0/env/${Environment}/build-spec.yaml
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
@@ -244,15 +244,11 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-1/env/${CTEnvironment}/build-spec.yaml
+        BuildSpec: !Sub infrastructure/gitsync-core/step-1/env/${Environment}/build-spec.yaml
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
-        # ADD: This new section to pass the branch name into the script
-        EnvironmentVariables:
-          - Name: GITHUB_BRANCH
-            Value: !Ref GitHubBranch
       Name: 'gitsync-core-pipeline-step-1'
       ServiceRole: !Ref CodeBuildServiceRole
 
@@ -263,7 +259,7 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-2/env/${CTEnvironment}/build-spec.yaml
+        BuildSpec: !Sub infrastructure/gitsync-core/step-2/env/${Environment}/build-spec.yaml
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
@@ -278,7 +274,7 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-3/env/${CTEnvironment}/build-spec.yaml
+        BuildSpec: !Sub infrastructure/gitsync-core/step-3/env/${Environment}/build-spec.yaml
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0

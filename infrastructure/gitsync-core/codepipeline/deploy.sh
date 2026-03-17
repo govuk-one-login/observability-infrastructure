@@ -1,7 +1,30 @@
 #! /bin/bash
 
-ENVIRONMENT=${1:-development}
-CONNECTIONNAME=${2:-GDS-GitHub-Connection}
+ENVIRONMENT=${1}
+
+if [ "$1" != "development" ] && [ "$1" != "non-production" ] && [ "$1" != "production" ];then
+  echo " ENVIRONMENT positional parameter required"
+  echo " Must be either 'sandbox' or 'non-production' or 'production'"
+  echo " Usage: ./deploy.sh ENVIRONMENT"
+  exit 1
+fi
+
+params_file="./parameters/$ENVIRONMENT.yaml"
+if [ -f "${params_file}" ]; then
+  echo " [INFO] Loading deployment pipeline parameters from $params_file"
+else
+  echo " [ERROR] There's no parameters file for $ENVIRONMENT"
+  exit 1
+fi
+
+# Use yq to get one Key=Value per line
+# fetching all params with yq at once gives a cloudformation parameter format error
+PARAMS=()
+while IFS= read -r line; do
+  PARAMS+=("$line")
+done < <(yq -r '.parameters | to_entries[] | "\(.key)=\(.value | tostring)"' "$params_file")
+
+CONNECTIONNAME="$(yq '.parameters.ConnectionName' "$params_file")"
 
 echo "INFO: collecting CodeConnection ARN"
 CONNECTIONARN=$(
@@ -10,18 +33,12 @@ CONNECTIONARN=$(
     --output text \
     --region eu-west-2)
 
-echo "INFO: Using the CodeConnection: (${CONNECTIONARN})"
-
-# WORKING_DIR="infrastructure/gitsync-core/step-0/template.yaml, infrastructure/gitsync-core/step-1/template.yaml, infrastructure/gitsync-core/step-2/notification-rules.yaml, infrastructure/gitsync-core/step-3/slack-integration.yaml"
-WORKING_DIR="infrastructure/gitsync-core/*/*.yaml"
+echo "INFO: Using the CodeConnection: ${CONNECTIONARN}"
 
 aws cloudformation deploy \
     --region eu-west-2 \
     --stack-name gitsync-core-pipeline \
-    --template-file "${ENVIRONMENT}/gitsync-core-pipeline.yaml" \
+    --template-file "gitsync-core-pipeline.yaml" \
     --capabilities CAPABILITY_NAMED_IAM \
     --no-fail-on-empty-changeset \
-    --parameter-overrides \
-        CTEnvironment="${ENVIRONMENT}" \
-        WorkingDir="${WORKING_DIR}" \
-        ConnectionArn="${CONNECTIONARN}"
+    --parameter-overrides "${PARAMS[@]}" \
