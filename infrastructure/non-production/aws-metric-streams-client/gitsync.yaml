@@ -1,3 +1,4 @@
 template-file-path: infrastructure/non-production/aws-metric-streams-client/template.yaml
-parameters: {}
+parameters:
+  SecretName: DynatraceSecretsV2
 tags: {}

@@ -73,7 +73,7 @@ repos:
         files: infrastructure/.*\.(json|yml|yaml)$
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: 3.2.508
+    rev: 3.2.509
     hooks:
       - id: checkov
         args: [--config-file, .checkov.yaml]
