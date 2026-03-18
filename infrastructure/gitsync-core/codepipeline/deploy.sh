@@ -34,6 +34,7 @@ CONNECTIONARN=$(
     --region eu-west-2)
 
 echo "INFO: Using the CodeConnection: ${CONNECTIONARN}"
+PARAMS+=("ConnectionArn=$CONNECTIONARN")
 
 aws cloudformation deploy \
     --region eu-west-2 \
