@@ -1,0 +1,7 @@
+parameters:
+  Environment: production
+  ConnectionName: GDS-GitHub-Connection
+  GitHubRepoName: observability-infrastructure
+  GitHubBranch: main
+  PipelineName: codepipeline-gitsync-core-pipeline
+  WorkingDir: infrastructure/gitsync-core/non-production
