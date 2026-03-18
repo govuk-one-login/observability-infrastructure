@@ -354,13 +354,6 @@ Resources:
               InputArtifacts:
                 - Name: SourceCode
               RunOrder: 3
-            - Name: Approve-Step-2
-              ActionTypeId:
-                Category: Approval
-                Owner: AWS
-                Provider: Manual
-                Version: "1"
-              RunOrder: 4
             - Name: Step-2
               ActionTypeId:
                 Category: Build
@@ -371,14 +364,7 @@ Resources:
                 ProjectName: !Ref Step2
               InputArtifacts:
                 - Name: SourceCode
-              RunOrder: 5
-            - Name: Approve-Step-3
-              ActionTypeId:
-                Category: Approval
-                Owner: AWS
-                Provider: Manual
-                Version: "1"
-              RunOrder: 6
+              RunOrder: 4
             - Name: Step-3
               ActionTypeId:
                 Category: Build
@@ -389,4 +375,4 @@ Resources:
                 ProjectName: !Ref Step3
               InputArtifacts:
                 - Name: SourceCode
-              RunOrder: 7
+              RunOrder: 5
