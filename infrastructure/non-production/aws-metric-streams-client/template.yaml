@@ -132,6 +132,27 @@ Resources:
     Type: AWS::CloudWatch::MetricStream
     Properties:
       FirehoseArn: !GetAtt FirehoseMetricStreams.Arn
+      IncludeFilters:
+        - Namespace: Authentication
+        - Namespace: backend-api
+        - Namespace: CIMIT
+        - Namespace: CrsBackend
+        - Namespace: di-ipv-cri-check-hmrc-api
+        - Namespace: F2F-CRI
+        - Namespace: mob-async-backend
+        - Namespace: TxMA
+        - Namespace: AWS/ApiGateway
+        - Namespace: AWS/ApplicationELB
+        - Namespace: AWS/CodeBuild
+        - Namespace: AWS/DynamoDB
+        - Namespace: AWS/ECS
+        - Namespace: AWS/Firehose
+        - Namespace: AWS/KMS
+        - Namespace: AWS/Lambda
+        - Namespace: AWS/SNS
+        - Namespace: AWS/SQS
+        - Namespace: AWS/States
+        - Namespace: AWS/WAFV2
       IncludeLinkedAccountsMetrics: true
       RoleArn: !GetAtt MetricStreamsRole.Arn
       OutputFormat: 'opentelemetry0.7'
