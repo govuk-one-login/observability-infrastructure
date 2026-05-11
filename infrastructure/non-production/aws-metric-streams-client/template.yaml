@@ -133,6 +133,7 @@ Resources:
     Properties:
       FirehoseArn: !GetAtt FirehoseMetricStreams.Arn
       IncludeFilters:
+        - Namespace: LambdaInsights
         - Namespace: Authentication
         - Namespace: backend-api
         - Namespace: CIMIT
