@@ -32,6 +32,21 @@ If you are not using Cloudformation or the following does not satisfy your team'
 | DT_TENANT                             | khw46367               	             | bhe21058                   	        |
 | DT_OPEN_TELEMETRY_ENABLE_INTEGRATION  | true               	                 | true                   	            |
 
+### ⚠️ Before Continuing - Incompatible ARNs (Related to #di-incident-inc0020009) ⚠️ The following ARNs were found to be incompatible with the latest Lambda Node 22 runtime rolled out by AWS:
+  ```
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_279_2_20231020-043746_with_collector_nodejs:1
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_289_2_20240322-044523_with_collector_nodejs:1
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_299_2_20240809-044254_with_collector_nodejs:2
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_2_20250307-045250_with_collector_nodejs:1
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_313_2_20250404-043044_with_collector_nodejs:1
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_325_7_20250925-155144_with_collector_nodejs:1
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_nodejs_arm:1
+  arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_331_39_20260206-150338_with_collector_nodejs_arm:1
+```
+
+The tabled ARNs below, above 1.329, do not include the ones highlighted as incompatible.
+
 ### Layer ARNs
 Due to being on the Enterprise Support plan, the following layer versions are currently supported.
 
@@ -39,6 +54,30 @@ New versions are made available on the 3rd of each month.
 
 | Layer Version  | Layer Runtime   | Layer Architecture | Layer Type  | Layer ARNs  	                                                                                                       |
 |--------------- |---------------- |------------------- |------------ |--------------------------------------------------------------------------------------------------------------------- |
+| 1.339          | NODEJS_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_339_70_20260702-174000_with_collector_nodejs_x86:1  | 
+|                | NODEJS_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_339_70_20260702-174000_with_collector_nodejs_arm:1  |
+|                | JAVA_LAYER      | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_339_70_20260702-174000_with_collector_java_x86:1    |
+|                | JAVA_LAYER      | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_339_70_20260702-174000_with_collector_java_arm:1    | 
+|                | PYTHON_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_339_70_20260702-174000_with_collector_python_x86:1  |
+|                | PYTHON_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_339_70_20260702-174000_with_collector_python_arm:1  |
+| 1.337          | NODEJS_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_337_51_20260520-164208_with_collector_nodejs_arm:1  | 
+|                | NODEJS_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_337_51_20260520-164208_with_collector_nodejs_x86:1  |
+|                | JAVA_LAYER      | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_337_51_20260520-164208_with_collector_java_x86:1    |
+|                | JAVA_LAYER      | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_337_51_20260520-164208_with_collector_java_arm:1    | 
+|                | PYTHON_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_337_51_20260520-164208_with_collector_python_x86:1  |
+|                | PYTHON_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_337_51_20260520-164208_with_collector_python_arm:1  |
+| 1.335          | NODEJS_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_335_58_20260423-145051_with_collector_nodejs_arm:1  |
+|                | NODEJS_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_335_58_20260423-145051_with_collector_nodejs_x86:1  |
+|                | PYTHON_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_335_58_20260423-145051_with_collector_python_arm:1  |
+|                | PYTHON_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_335_58_20260423-145051_with_collector_python_x86:1  |
+|                | JAVA_LAYER      | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_335_58_20260423-145051_with_collector_java_arm:1    |
+|                | JAVA_LAYER      | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_335_58_20260423-145051_with_collector_java_x86:1    |
+| 1.333          | NODEJS_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_333_55_20260317-092136_with_collector_nodejs_arm:1  |
+|                | NODEJS_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_333_55_20260317-092136_with_collector_nodejs_x86:1  |
+|                | PYTHON_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_333_55_20260317-092136_with_collector_python_arm:1  |
+|                | PYTHON_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_333_55_20260317-092136_with_collector_python_x86:1  |
+|                | JAVA_LAYER      | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_333_55_20260317-092136_with_collector_java_arm:1    |
+|                | JAVA_LAYER      | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_333_55_20260317-092136_with_collector_java_x86:1    |
 | 1.329          | NODEJS_LAYER    | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_nodejs_x86:1  | 
 |                | NODEJS_LAYER    | ARM                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_nodejs_arm:1  |
 |                | JAVA_LAYER      | x86                | Latest      | arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_java_x86:1    |
