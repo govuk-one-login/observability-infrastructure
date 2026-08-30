@@ -1,22 +1,20 @@
 #!/bin/bash
 # This script deploys the core gitsync infrastructure. And regional infrastructure in eu-west-2
 
-STACK_NAME="$1-step-0"
-ENVIRONMENT=$2
-REGION="eu-west-2"
-REPONAME=$3
-SECRETNAME=$4
-
 echo "INFO: deploying Secrets Manager stack"
 aws cloudformation deploy \
-  --region $REGION \
+  --region "$REGION" \
   --stack-name "$STACK_NAME" \
   --template-file template.yaml \
   --capabilities CAPABILITY_NAMED_IAM \
   --parameter-overrides \
     Environment="${ENVIRONMENT}" \
     RepositoryName="${REPONAME}" \
-    SecretName="${SECRETNAME}"
+    SecretName="${SECRETNAME}" \
+    KeySpec="${KEYSPEC}" \
+    KeyUsage="${KEYUSAGE}" \
+    DeletionPolicy="${DELETION_POLICY}" \
+    UpdateReplacePolicy="${UPDATE_REPLACE_POLICY}"
 
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."
@@ -26,7 +24,7 @@ echo "INFO: Scanning stack health."
 while true; do
   STATUS=$(aws cloudformation describe-stacks \
     --stack-name "$STACK_NAME" \
-    --region $REGION \
+    --region "$REGION" \
     --query "Stacks[0].StackStatus" \
     --output text)
 
@@ -39,14 +37,14 @@ while true; do
 
     aws cloudformation delete-stack \
       --stack-name "$STACK_NAME" \
-      --region $REGION
+      --region "$REGION"
 
     echo "Stack deletion initiated. Waiting for deletion to complete..."
 
     # Wait for the stack deletion to complete
     aws cloudformation wait stack-delete-complete \
       --stack-name "$STACK_NAME" \
-      --region $REGION
+      --region "$REGION"
 
     echo "Stack deletion completed."
     exit 1
