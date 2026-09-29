@@ -154,6 +154,7 @@ Resources:
         - Namespace: AWS/SQS
         - Namespace: AWS/States
         - Namespace: AWS/WAFV2
+        - Namespace: AWS/EventBridge/Pipes
       IncludeLinkedAccountsMetrics: true
       RoleArn: !GetAtt MetricStreamsRole.Arn
       OutputFormat: 'opentelemetry0.7'
