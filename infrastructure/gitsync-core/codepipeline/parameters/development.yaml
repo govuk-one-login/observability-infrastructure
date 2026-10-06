@@ -1,7 +1,17 @@
 parameters:
+  AWSRegion: eu-west-2
   Environment: development
   ConnectionName: GDS-GitHub-Connection
+  GitHubBranch: PSREGOV-3840/codepipeline-params-passed-as-env-vars  # <-- change this to your feature branch while testing in development
   GitHubRepoName: observability-infrastructure
-  GitHubBranch: main  # <-- change this to your feature branch while testing in development
   PipelineName: codepipeline-gitsync-core-pipeline
-  WorkingDir: infrastructure/gitsync-core/non-production
+  WorkingDir: placeholder  # not currently in use until step-x/env/ folders can be retired
+  # extra params needed to replace inline build-spec definitions:
+  KeySpec: SYMMETRIC_DEFAULT  # default
+  KeyUsage:  ENCRYPT_DECRYPT  # default
+  GitHubOwner: govuk-one-login  # default
+  SecretsDeletionPolicy: Retain  # default
+  SecretName: DynatraceSecretsV2
+  SecretsUpdateReplacePolicy: Retain  # default
+  SlackChannelId: C06PP0YR7PB  # dev-specific
+  SlackWorkspaceId: T8GT9416G

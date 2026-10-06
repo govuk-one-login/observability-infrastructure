@@ -1,21 +1,6 @@
 #!/bin/bash
 # This script deploys the core gitsync infrastructure. And regional infrastructure in eu-west-2
 
-STACK_NAME=$1
-ENVIRONMENT=$2
-CONNECTIONNAME=$3
-REGION="eu-west-2"
-BRANCHNAME=$4
-REPONAME=$5
-SECRETNAME=$6
-
-echo "INFO: collecting CodeConnection ARN"
-CONNECTIONARN=$(
-  aws codestar-connections list-connections \
-    --query "Connections[?ConnectionName=='${CONNECTIONNAME}'].ConnectionArn" \
-    --output text \
-    --region eu-west-2)
-
 echo "INFO: Using the CodeConnection: (${CONNECTIONARN})"
 
 if [[ -n "$SECRETNAME" ]]; then
@@ -29,28 +14,28 @@ if [[ -n "$SECRETNAME" ]]; then
 
   echo "INFO: deploying Git sync configuration"
   aws cloudformation deploy \
-    --region $REGION \
-    --stack-name $STACK_NAME-step-1 \
+    --region "$REGION" \
+    --stack-name "$STACK_NAME" \
     --template-file template.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
     --parameter-overrides \
-      CTEnvironment=${ENVIRONMENT} \
-      CodeStarConnection=${CONNECTIONARN} \
-      BranchName=${BRANCHNAME} \
-      RepositoryName=${REPONAME} \
-      SecretStoreArn=${SECRETARN}
+      CTEnvironment="${ENVIRONMENT}" \
+      CodeStarConnection="${CONNECTIONARN}" \
+      BranchName="${BRANCHNAME}" \
+      RepositoryName="${REPONAME}" \
+      SecretStoreArn="${SECRETARN}"
 else
   echo "INFO: deploying Git sync configuration"
   aws cloudformation deploy \
-    --region $REGION \
-    --stack-name $STACK_NAME-step-1 \
+    --region "$REGION" \
+    --stack-name "$STACK_NAME" \
     --template-file template.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
     --parameter-overrides \
-      CTEnvironment=${ENVIRONMENT} \
-      CodeStarConnection=${CONNECTIONARN} \
-      BranchName=${BRANCHNAME} \
-      RepositoryName=${REPONAME}
+      CTEnvironment="${ENVIRONMENT}" \
+      CodeStarConnection="${CONNECTIONARN}" \
+      BranchName="${BRANCHNAME}" \
+      RepositoryName="${REPONAME}"
 fi
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."
@@ -59,8 +44,8 @@ echo "INFO: Scanning stack health."
 # Poll the status until it reaches a completion or failure state
 while true; do
   STATUS=$(aws cloudformation describe-stacks \
-    --stack-name $STACK_NAME-step-1 \
-    --region $REGION \
+    --stack-name "$STACK_NAME" \
+    --region "$REGION" \
     --query "Stacks[0].StackStatus" \
     --output text)
 
@@ -72,15 +57,15 @@ while true; do
     echo "Attempting to delete the failed stack..."
 
     aws cloudformation delete-stack \
-      --stack-name $STACK_NAME-step-1 \
-      --region $REGION
+      --stack-name "$STACK_NAME" \
+      --region "$REGION"
 
     echo "Stack deletion initiated. Waiting for deletion to complete..."
 
     # Wait for the stack deletion to complete
     aws cloudformation wait stack-delete-complete \
-      --stack-name $STACK_NAME-step-1 \
-      --region $REGION
+      --stack-name "$STACK_NAME" \
+      --region "$REGION"
 
     echo "Stack deletion completed."
     exit 1

@@ -2,20 +2,15 @@
 # This script iterates over the regions array and deploys the notifications-rule
 # template per specified region.
 
-STACK_NAME=$1
-REGION=$2
-REPONAME=$3
-
 echo "INFO: deploying SNS notification rules configuration"
-echo "INFO: executing cloudformation deploy for region: $region"
+echo "INFO: executing cloudformation deploy for region: $REGION"
 aws cloudformation deploy \
-  --region $REGION \
+  --region "$REGION" \
   --template-file notification-rules.yaml \
-  --stack-name $STACK_NAME-Event-Rules \
+  --stack-name "$STACK_NAME" \
   --capabilities CAPABILITY_IAM \
   --parameter-overrides \
-    GitHubRepoName=${REPONAME}
-
+    GitHubRepoName="${REPONAME}"
 
 echo "STATUS: Stack deploy complete."
 echo "INFO: Scanning stack health."
@@ -25,8 +20,8 @@ echo "INFO: Scanning stack health."
 
 while true; do
   STATUS=$(aws cloudformation describe-stacks \
-    --stack-name $STACK_NAME-Event-Rules \
-    --region $REGION \
+    --stack-name "$STACK_NAME" \
+    --region "$REGION" \
     --query "Stacks[0].StackStatus" \
     --output text)
 
@@ -38,15 +33,15 @@ while true; do
     echo "Attempting to delete the failed stack..."
 
     aws cloudformation delete-stack \
-      --stack-name $STACK_NAME-Event-Rules \
-      --region $REGION
+      --stack-name "$STACK_NAME" \
+      --region "$REGION"
 
     echo "Stack deletion initiated. Waiting for deletion to complete..."
 
     # Wait for the stack deletion to complete
     aws cloudformation wait stack-delete-complete \
-      --stack-name $STACK_NAME-Event-Rules \
-      --region $REGION
+      --stack-name "$STACK_NAME" \
+      --region "$REGION"
 
     echo "Stack deletion completed."
     exit 1

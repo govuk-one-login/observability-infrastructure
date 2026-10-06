@@ -1,6 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
+  AWSRegion:
+    Type: String
+    Default: eu-west-2
   ConnectionArn:
     Type: String
   Environment:
@@ -16,9 +19,27 @@ Parameters:
   GitHubRepoName:
     Type: String
     Default: "observability-infrastructure"
+  KeySpec:
+    Type: String
+    Default: SYMMETRIC_DEFAULT
+  KeyUsage:
+    Type: String
+    Default: ENCRYPT_DECRYPT
   PipelineName:
     Type: String
     Default: codepipeline-gitsync-core-pipeline
+  SecretName:
+    Type: String
+  SecretsDeletionPolicy:
+    Type: String
+    Default: Retain
+  SecretsUpdateReplacePolicy:
+    Type: String
+    Default: Retain
+  SlackChannelId:
+    Type: String
+  SlackWorkspaceId:
+    Type: String
   WorkingDir:
     Type: String
     Description: Working directory for IaC
@@ -229,11 +250,36 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-0/env/${Environment}/build-spec.yaml
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - cd infrastructure/gitsync-core/step-0
+                - ./deploy.sh
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Value: !Ref Environment
+          - Name: KEYSPEC
+            Value: !Ref KeySpec
+          - Name: KEYUSAGE
+            Value: !Ref KeyUsage
+          - Name: UPDATE_REPLACE_POLICY
+            Value: !Ref SecretsUpdateReplacePolicy
+          - Name: DELETION_POLICY
+            Value: !Ref SecretsDeletionPolicy
+          - Name: REGION
+            Value: !Ref AWSRegion
+          - Name: REPONAME
+            Value: !Ref GitHubRepoName
+          - Name: STACK_NAME
+            Value: Gitsync-core-step-0
+          - Name: SECRETNAME
+            Value: !Ref SecretName
       Name: 'gitsync-core-pipeline-step-0'
       ServiceRole: !Ref CodeBuildServiceRole
 
@@ -244,11 +290,32 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-1/env/${Environment}/build-spec.yaml
+        BuildSpec: |
+            version: 0.2
+            phases:
+              build:
+                commands:
+                  - cd infrastructure/gitsync-core/step-1
+                  - ./deploy.sh
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: BRANCHNAME
+            Value: !Ref GitHubBranch
+          - Name: CONNECTIONARN
+            Value: !Ref ConnectionArn
+          - Name: ENVIRONMENT
+            Value: !Ref Environment
+          - Name: STACK_NAME
+            Value: Gitsync-core-step-1
+          - Name: REGION
+            Value: !Ref AWSRegion
+          - Name: REPONAME
+            Value: !Ref GitHubRepoName
+          - Name: SECRETNAME
+            Value: !Ref SecretName
       Name: 'gitsync-core-pipeline-step-1'
       ServiceRole: !Ref CodeBuildServiceRole
 
@@ -259,11 +326,24 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-2/env/${Environment}/build-spec.yaml
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - cd infrastructure/gitsync-core/step-2
+                - ./deploy.sh
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: STACK_NAME
+            Value: GitSyncNotifications-Event-Rules
+          - Name: REGION
+            Value: !Ref AWSRegion
+          - Name: REPONAME
+            Value: !Ref GitHubRepoName
       Name: 'gitsync-core-pipeline-step-2'
       ServiceRole: !Ref CodeBuildServiceRole
 
@@ -274,11 +354,30 @@ Resources:
         Type: CODEPIPELINE
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub infrastructure/gitsync-core/step-3/env/${Environment}/build-spec.yaml
+        BuildSpec: |
+          version: 0.2
+          phases:
+            build:
+              commands:
+                - cd infrastructure/gitsync-core/step-3
+                - ./deploy.sh
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
         Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: EVENT_RULES_STACK_NAME
+            Value: GitSyncNotifications-Event-Rules
+          - Name: REGION
+            Value: !Ref AWSRegion
+          - Name: REPONAME
+            Value: !Ref GitHubRepoName
+          - Name: STACK_NAME
+            Value: GitSyncNotifications-Slack-Integration
+          - Name: SLACK_CHANNEL_ID
+            Value: !Ref SlackChannelId
+          - Name: SLACK_WORKSPACE_ID
+            Value: !Ref SlackWorkspaceId
       Name: 'gitsync-core-pipeline-step-3'
       ServiceRole: !Ref CodeBuildServiceRole
 
