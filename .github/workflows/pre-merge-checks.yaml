@@ -31,16 +31,16 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
-      - name: Run Checko (from org-github-actions/checkov@v1)
-        uses: govuk-one-login/org-github-actions/checkov@v1
+      - name: Run Checkov (from github-actions/checkov@v1)
+        uses: govuk-one-login/github-actions/code-quality/run-checkov@6d72d3c80a79ab102d120de5038e75dcf9c6a7fc
 
   pre-commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6
-      - name: Run pre-commit (from org-github-actions/pre-commit@v1)
-        uses: govuk-one-login/org-github-actions/pre-commit@v1
+      - name: Run pre-commit (from github-actions/pre-commit@v1)
+        uses: govuk-one-login/github-actions/code-quality/run-pre-commit@656e1fc5c16764aadc44f9b98706b1069ebdfe7c
         with:
           python-version: 3.13                             # Optional, defaults to '3.13'
-          pre-commit-tasks: yamllint
+          hooks-to-run: yamllint
