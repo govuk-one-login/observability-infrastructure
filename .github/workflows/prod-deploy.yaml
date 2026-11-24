@@ -16,7 +16,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Assume AWS Role
         uses: aws-actions/configure-aws-credentials@v2
         with:
