@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Assume AWS Role
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.DT_GH_ACTIONS_DEV_ROLE_ARN }}
           aws-region: eu-west-2
@@ -57,7 +57,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Assume AWS Role
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.DT_GH_ACTIONS_PROD_ROLE_ARN }}
           aws-region: eu-west-2
